@@ -1,20 +1,21 @@
 package main
 
 import (
-	"bufio"
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"math"
 	"os"
-	"strconv"
+
+	"github.com/Merovius/aoc_2020/aoc"
 )
 
 func main() {
-	vs, err := slurpNumbers(os.Stdin)
+	vs, err := aoc.SlurpNumbers(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
+	}
+	if len(vs) < bufSize {
+		log.Fatal("not enough numbers")
 	}
 	v, ok := findInvalidNumber(vs)
 	if !ok {
@@ -28,22 +29,6 @@ func main() {
 }
 
 const bufSize = 25
-
-func slurpNumbers(r io.Reader) ([]int, error) {
-	var out []int
-	s := bufio.NewScanner(r)
-	for s.Scan() {
-		n, err := strconv.Atoi(s.Text())
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, n)
-	}
-	if len(out) < bufSize {
-		return nil, errors.New("not enough numbers")
-	}
-	return out, s.Err()
-}
 
 func findInvalidNumber(vs []int) (v int, ok bool) {
 loop:
