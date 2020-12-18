@@ -2,208 +2,158 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"math"
 	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
-	grid3, err := readInput(os.Stdin)
+	dim := flag.Int("dim", 3, "Number of dimensions the grid should use")
+	flag.Parse()
+
+	grid, err := ReadInput(os.Stdin, *dim)
 	if err != nil {
 		log.Fatal(err)
 	}
-	grid4 := grid3.toGrid4()
 	for i := 0; i < 6; i++ {
-		grid3 = grid3.simulate()
+		grid.Simulate()
 	}
-	fmt.Println("Number of alive cells:", len(grid3))
-	for i := 0; i < 6; i++ {
-		grid4 = grid4.simulate()
-	}
-	fmt.Println("Number of alive cells:", len(grid4))
+	fmt.Println("Number of alive cells:", grid.AliveCells())
 }
 
-func readInput(r io.Reader) (grid3, error) {
+func ReadInput(r io.Reader, dim int) (*Grid, error) {
 	s := bufio.NewScanner(r)
 	y := 0
-	grid3 := make(grid3)
+	grid := NewGrid(dim)
 	for s.Scan() {
 		for x, b := range s.Bytes() {
 			if b == '.' {
 				continue
 			}
-			c := cell3{x, y, 0}
-			grid3[c] = true
+			c := make([]int, dim)
+			c[0], c[1] = x, y
+			grid.SetAlive(c)
 		}
 		y++
 	}
-	return grid3, s.Err()
+	return grid, s.Err()
 }
 
-type grid3 map[cell3]bool
+type Cell []int
 
-type cell3 [3]int
+// Grid is a grid of a fixed dimension.
+type Grid struct {
+	// m is a set, with fmt.Sprintf("%v",c) as a key, where c is a []int.
+	m map[string]bool
+	// dim is the dimension of the grid
+	dim int
+	min []int
+	max []int
+}
 
-func (g grid3) toGrid4() grid4 {
-	g4 := make(grid4)
-	for c := range g {
-		g4[cell4{c[0], c[1], c[2], 0}] = true
+// NewGrid returns a new Grid of the given dimension.
+func NewGrid(dim int) *Grid {
+	return &Grid{
+		m:   make(map[string]bool),
+		dim: dim,
 	}
-	return g4
 }
 
-func (g grid3) simulate() grid3 {
-	next := make(grid3)
-	for c := range g {
-		n := g.countAliveNeighbors(c)
+func (g *Grid) SetAlive(c Cell) {
+	g.m[fmt.Sprint(c)] = true
+}
+
+func (g *Grid) cellFromKey(k string) Cell {
+	k = k[1 : len(k)-1]
+	sp := strings.Split(k, ",")
+	c := make([]int, g.dim)
+	for i, s := range sp {
+		v, _ := strconv.Atoi(s)
+		c[i] = v
+	}
+	return c
+}
+
+func (g *Grid) Simulate() {
+	next := make(map[string]bool)
+	for k := range g.m {
+		c := g.cellFromKey(k)
+		n := g.CountAliveNeighbors(c)
 		if n == 2 || n == 3 {
-			next[c] = true
+			next[k] = true
 		}
-		g.walkNeighbors(c, func(c cell3) {
-			if g[c] {
+		g.WalkNeighbors(c, func(c Cell) {
+			if g.m[fmt.Sprint(c)] {
 				return
 			}
-			if n := g.countAliveNeighbors(c); n == 3 {
-				next[c] = true
+			if n := g.CountAliveNeighbors(c); n == 3 {
+				next[fmt.Sprint(c)] = true
 			}
 		})
 	}
-	return next
+	g.m = next
 }
 
-func (g grid3) walkNeighbors(c cell3, f func(cell3)) {
-	for i := -1; i <= 1; i++ {
-		for j := -1; j <= 1; j++ {
-			for k := -1; k <= 1; k++ {
-				if i == 0 && j == 0 && k == 0 {
-					continue
-				}
-				c2 := cell3{
-					c[0] + i,
-					c[1] + j,
-					c[2] + k,
-				}
-				f(c2)
-			}
+func (g *Grid) WalkNeighbors(c Cell, f func(Cell)) {
+	idx := make([]int, g.dim)
+	for i := range idx {
+		idx[i] = -1
+	}
+
+idxLoop:
+	for {
+		if isZero(idx) {
+			continue
 		}
+		c2 := make(Cell, g.dim)
+		copy(c2, c)
+		for i := range c {
+			c2[i] += idx[i]
+		}
+		f(c2)
+		for i := 0; i < len(idx); i++ {
+			idx[i]++
+			if idx[i] <= 1 {
+				continue idxLoop
+			}
+			idx[i] = -1
+		}
+		break
 	}
 }
 
-func (g grid3) countAliveNeighbors(c cell3) int {
+func (g *Grid) CountAliveNeighbors(c Cell) int {
 	var n int
-	g.walkNeighbors(c, func(c cell3) {
-		if g[c] {
+	g.WalkNeighbors(c, func(c Cell) {
+		if g.m[fmt.Sprint(c)] {
 			n++
 		}
 	})
 	return n
 }
 
-func (g grid3) bounds() (min, max cell3) {
-	min = cell3{math.MaxInt64, math.MaxInt64, math.MaxInt64}
-	max = cell3{math.MinInt64, math.MinInt64, math.MinInt64}
-	for c := range g {
-		if c[0] < min[0] {
-			min[0] = c[0]
-		}
-		if c[0] > max[0] {
-			max[0] = c[0]
-		}
-		if c[1] < min[1] {
-			min[1] = c[1]
-		}
-		if c[1] > max[1] {
-			max[1] = c[1]
-		}
-		if c[2] < min[2] {
-			min[2] = c[2]
-		}
-		if c[2] > max[2] {
-			max[2] = c[2]
+func isZero(vs []int) bool {
+	for _, v := range vs {
+		if v != 0 {
+			return false
 		}
 	}
-	return min, max
+	return true
 }
 
-func (g grid3) dump() {
-	min, max := g.bounds()
-	for z := min[2]; z <= max[2]; z++ {
-		fmt.Printf("z=%d\n", z)
-		for y := min[1]; y <= max[1]; y++ {
-			for x := min[0]; x <= max[0]; x++ {
-				if g[cell3{x, y, z}] {
-					fmt.Print("#")
-				} else {
-					fmt.Print(".")
-				}
-			}
-			fmt.Println()
-		}
-		fmt.Println()
+func (g *Grid) Bounds() (min, max Cell) {
+	min, max = make(Cell, g.dim), make(Cell, g.dim)
+	for i := range min {
+		min[i], max[i] = math.MaxInt64, math.MinInt64
 	}
-}
-
-type grid4 map[cell4]bool
-
-type cell4 [4]int
-
-func (g grid4) simulate() grid4 {
-	next := make(grid4)
-	for c := range g {
-		n := g.countAliveNeighbors(c)
-		if n == 2 || n == 3 {
-			next[c] = true
-		}
-		g.walkNeighbors(c, func(c cell4) {
-			if g[c] {
-				return
-			}
-			if n := g.countAliveNeighbors(c); n == 3 {
-				next[c] = true
-			}
-		})
-	}
-	return next
-}
-
-func (g grid4) walkNeighbors(c cell4, f func(cell4)) {
-	for i := -1; i <= 1; i++ {
-		for j := -1; j <= 1; j++ {
-			for k := -1; k <= 1; k++ {
-				for l := -1; l <= 1; l++ {
-					if i == 0 && j == 0 && k == 0 && l == 0 {
-						continue
-					}
-					c2 := cell4{
-						c[0] + i,
-						c[1] + j,
-						c[2] + k,
-						c[3] + l,
-					}
-					f(c2)
-				}
-			}
-		}
-	}
-}
-
-func (g grid4) countAliveNeighbors(c cell4) int {
-	var n int
-	g.walkNeighbors(c, func(c cell4) {
-		if g[c] {
-			n++
-		}
-	})
-	return n
-}
-
-func (g grid4) bounds() (min, max cell4) {
-	min = cell4{math.MaxInt64, math.MaxInt64, math.MaxInt64, math.MaxInt64}
-	max = cell4{math.MinInt64, math.MinInt64, math.MinInt64, math.MinInt64}
-	for c := range g {
-		for i := 0; i < 4; i++ {
+	for k := range g.m {
+		c := g.cellFromKey(k)
+		for i := range c {
 			if c[i] < min[i] {
 				min[i] = c[i]
 			}
@@ -215,23 +165,6 @@ func (g grid4) bounds() (min, max cell4) {
 	return min, max
 }
 
-func (g grid4) dump() {
-	min, max := g.bounds()
-	fmt.Println(min, max)
-	for w := min[3]; w <= max[3]; w++ {
-		for z := min[2]; z <= max[2]; z++ {
-			fmt.Printf("z=%d, w=%d\n", z, w)
-			for y := min[1]; y <= max[1]; y++ {
-				for x := min[0]; x <= max[0]; x++ {
-					if g[cell4{x, y, z, w}] {
-						fmt.Print("#")
-					} else {
-						fmt.Print(".")
-					}
-				}
-				fmt.Println()
-			}
-			fmt.Println()
-		}
-	}
+func (g *Grid) AliveCells() int {
+	return len(g.m)
 }
