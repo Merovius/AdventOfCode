@@ -36,8 +36,8 @@ func main() {
 }
 
 type Food struct {
-	ingredients StringSet
-	allergens   StringSet
+	Ingredients StringSet
+	Allergens   StringSet
 }
 
 func ReadInput(r io.Reader) ([]Food, error) {
@@ -56,17 +56,21 @@ func ReadInput(r io.Reader) ([]Food, error) {
 		}
 		var allergens []string
 		if i < len(l) {
-			allergens = strings.Split(strings.TrimPrefix(l[i:len(l)-1], "(contains "), ", ")
+			if l[len(l)-1] != ')' {
+				return nil, errors.New("unmatched parenthesis")
+			}
+			l = strings.TrimPrefix(l[i:len(l)-1], "(contains ")
+			allergens = strings.Split(l, ", ")
 			for i, s := range allergens {
 				allergens[i] = strings.TrimSpace(s)
 			}
 		}
 		f := Food{
-			allergens:   make(StringSet),
-			ingredients: make(StringSet),
+			Allergens:   make(StringSet),
+			Ingredients: make(StringSet),
 		}
-		f.allergens.Add(allergens...)
-		f.ingredients.Add(ingredients...)
+		f.Allergens.Add(allergens...)
+		f.Ingredients.Add(ingredients...)
 		foods = append(foods, f)
 	}
 	return foods, s.Err()
@@ -75,7 +79,7 @@ func ReadInput(r io.Reader) ([]Food, error) {
 func CountSafeIngredients(fs []Food, safe StringSet) int {
 	var n int
 	for _, f := range fs {
-		for i := range f.ingredients {
+		for i := range f.Ingredients {
 			if safe.Has(i) {
 				n++
 			}
@@ -87,7 +91,7 @@ func CountSafeIngredients(fs []Food, safe StringSet) int {
 func FindSafeIngredients(fs []Food, allergens map[string]string) StringSet {
 	out := make(StringSet)
 	for _, f := range fs {
-		for i := range f.ingredients {
+		for i := range f.Ingredients {
 			if _, ok := allergens[i]; !ok {
 				out.Add(i)
 			}
@@ -99,11 +103,11 @@ func FindSafeIngredients(fs []Food, allergens map[string]string) StringSet {
 func FindAllergens(fs []Food) (map[string]string, error) {
 	candidates := make(map[string]StringSet)
 	for _, f := range fs {
-		for a := range f.allergens {
+		for a := range f.Allergens {
 			if candidates[a].Empty() {
-				candidates[a] = f.ingredients
+				candidates[a] = f.Ingredients
 			} else {
-				candidates[a] = candidates[a].Intersect(f.ingredients)
+				candidates[a] = candidates[a].Intersect(f.Ingredients)
 			}
 		}
 	}
@@ -128,6 +132,14 @@ allergenLoop:
 }
 
 type StringSet map[string]bool
+
+func MakeStringSet(es ...string) StringSet {
+	out := make(StringSet)
+	for _, e := range es {
+		out.Add(e)
+	}
+	return out
+}
 
 func (s StringSet) Intersect(s2 StringSet) StringSet {
 	out := make(StringSet)
