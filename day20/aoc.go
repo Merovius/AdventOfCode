@@ -448,7 +448,7 @@ func CountSeamonsters(m Tile) int {
 		if !seamonster[0].MatchString(m.Tile[p[0]-1][p[1] : p[1]+20]) {
 			continue
 		}
-		if !seamonster[0].MatchString(m.Tile[p[0]+1][p[1] : p[1]+20]) {
+		if !seamonster[2].MatchString(m.Tile[p[0]+1][p[1] : p[1]+20]) {
 			continue
 		}
 		fmt.Println("Confirmed sea monster at", p)
