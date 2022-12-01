@@ -32,23 +32,22 @@ func main() {
 }
 
 func ReadInput(r io.Reader) ([][]int, error) {
-	var out [][]int
-
+	var (
+		out [][]int
+		cur []int
+	)
 	s := bufio.NewScanner(r)
 	for s.Scan() {
 		t := strings.TrimSpace(s.Text())
 		if t == "" {
-			out = append(out, nil)
+			out, cur = append(out, cur), nil
 			continue
 		}
 		n, err := strconv.Atoi(t)
 		if err != nil {
 			return nil, err
 		}
-		if len(out) == 0 {
-			out = append(out, nil)
-		}
-		out[len(out)-1] = append(out[len(out)-1], n)
+		cur = append(cur, n)
 	}
 	return out, s.Err()
 }
