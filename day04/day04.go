@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 )
 
 func main() {
@@ -26,44 +23,17 @@ type Range struct {
 
 func ReadInput(r io.Reader) ([][2]Range, error) {
 	var out [][2]Range
-	s := bufio.NewScanner(r)
-	for s.Scan() {
-		l := s.Text()
-		a, b, ok := strings.Cut(l, ",")
-		if !ok {
-			return nil, fmt.Errorf("invalid input line %q", l)
+	for {
+		var p [2]Range
+		i, err := fmt.Scanf("%d-%d,%d-%d\n", &p[0].Min, &p[0].Max, &p[1].Min, &p[1].Max)
+		if err == io.EOF {
+			return out, nil
 		}
-		mina, maxa, ok := strings.Cut(a, "-")
-		if !ok {
-			return nil, fmt.Errorf("invalid input line %q", l)
+		if i != 4 || err != nil {
+			return nil, err
 		}
-		minb, maxb, ok := strings.Cut(b, "-")
-		if !ok {
-			return nil, fmt.Errorf("invalid input line %q", l)
-		}
-		var (
-			pair [2]Range
-			err  error
-		)
-		pair[0].Min, err = strconv.Atoi(mina)
-		if err != nil {
-			return nil, fmt.Errorf("invalid input line %q: %w", l, err)
-		}
-		pair[0].Max, err = strconv.Atoi(maxa)
-		if err != nil {
-			return nil, fmt.Errorf("invalid input line %q: %w", l, err)
-		}
-		pair[1].Min, err = strconv.Atoi(minb)
-		if err != nil {
-			return nil, fmt.Errorf("invalid input line %q: %w", l, err)
-		}
-		pair[1].Max, err = strconv.Atoi(maxb)
-		if err != nil {
-			return nil, fmt.Errorf("invalid input line %q: %w", l, err)
-		}
-		out = append(out, pair)
+		out = append(out, p)
 	}
-	return out, s.Err()
 }
 
 func Contains(a, b Range) bool {
