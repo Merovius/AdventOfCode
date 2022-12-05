@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 
+	"golang.org/x/exp/slices"
 	"gonih.org/stack"
 )
 
@@ -22,8 +23,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	Exec(stacks, insts)
-	fmt.Printf("Tops of the stacks: %q\n", Tops(stacks))
+	stacks2 := clone(stacks)
+	Exec1(stacks, insts)
+	fmt.Printf("Tops of stacks part 1: %q\n", Tops(stacks))
+	Exec2(stacks2, insts)
+	fmt.Printf("Tops of stacks part 2: %q\n", Tops(stacks2))
 }
 
 func ReadStacks(s *bufio.Scanner) ([]stack.Stack[byte], error) {
@@ -96,7 +100,15 @@ type Inst struct {
 	To   int
 }
 
-func Exec(stacks []stack.Stack[byte], prog []Inst) {
+func Exec1(stacks []stack.Stack[byte], prog []Inst) {
+	for _, inst := range prog {
+		for j := 0; j < inst.N; j++ {
+			stacks[inst.To].Push(stacks[inst.From].Pop())
+		}
+	}
+}
+
+func Exec2(stacks []stack.Stack[byte], prog []Inst) {
 	var buf stack.Stack[byte]
 	for _, inst := range prog {
 		for j := 0; j < inst.N; j++ {
@@ -106,6 +118,14 @@ func Exec(stacks []stack.Stack[byte], prog []Inst) {
 			stacks[inst.To].Push(buf.Pop())
 		}
 	}
+}
+
+func clone[T any, S ~[]T](s []S) []S {
+	out := make([]S, len(s))
+	for i, s := range s {
+		out[i] = slices.Clone(s)
+	}
+	return out
 }
 
 func Tops(stacks []stack.Stack[byte]) string {
