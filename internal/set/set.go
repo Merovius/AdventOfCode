@@ -2,6 +2,14 @@ package set
 
 type Set[E comparable] map[E]struct{}
 
+func Make[E comparable](e ...E) Set[E] {
+	s := make(Set[E])
+	for _, e := range e {
+		s.Add(e)
+	}
+	return s
+}
+
 func (s Set[E]) Add(e E) {
 	s[e] = struct{}{}
 }
