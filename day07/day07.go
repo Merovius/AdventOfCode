@@ -21,13 +21,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	du := DiskUsages(root)
-	for k, v := range du {
-		fmt.Printf("%s: %d\n", k, v)
-	}
-	fmt.Printf("Total disk usage of small-ish dirs: %d\n", DiskUsageSmall(du))
-	d, n := FreeSpace(du, 70000000, 30000000)
-	fmt.Printf("Freeing %q frees up %d bytes\n", d, n)
+	SetSizes(root)
+	fmt.Printf("Total disk usage of small-ish dirs: %d\n", SumSmallDirs(root))
+	fmt.Printf("Freeing up %d bytes\n", FreeSpace(root, 70000000, 30000000))
 }
 
 type File struct {
@@ -38,11 +34,9 @@ type File struct {
 
 func Collect(lines []string) (*File, error) {
 	var dirs stack.Stack[*File]
-	cwd := &File{
+	dirs.Push(&File{
 		Children: make(map[string]*File),
-	}
-	root := cwd
-	dirs.Push(cwd)
+	})
 	for i, l := range lines {
 		sp := strings.Split(l, " ")
 		if sp[0] != "$" {
@@ -50,7 +44,7 @@ func Collect(lines []string) (*File, error) {
 				return nil, fmt.Errorf("%d: invalid line %q", i+1, l)
 			}
 			if sp[0] == "dir" {
-				cwd.Children[sp[1]] = &File{
+				dirs.Top().Children[sp[1]] = &File{
 					Name:     sp[1],
 					Children: make(map[string]*File),
 				}
@@ -60,7 +54,7 @@ func Collect(lines []string) (*File, error) {
 			if err != nil {
 				return nil, fmt.Errorf("%d: invalid line %q: %w", i+1, l, err)
 			}
-			cwd.Children[sp[1]] = &File{Size: n}
+			dirs.Top().Children[sp[1]] = &File{Size: n}
 			continue
 		}
 		if sp[1] == "ls" {
@@ -75,67 +69,47 @@ func Collect(lines []string) (*File, error) {
 		switch d := sp[2]; d {
 		case "..":
 			dirs.Pop()
-			cwd = dirs.Top()
 		case "/":
-			cwd = dirs[0]
 			dirs = dirs[:1]
 		default:
-			cwd = cwd.Children[d]
-			dirs.Push(cwd)
+			dirs.Push(dirs.Top().Children[d])
 		}
 	}
-	_ = root
 	return dirs[0], nil
 }
 
-func DiskUsages(root *File) map[string]int {
-	var (
-		walk func(*File) int
-		cwd  stack.Stack[string]
-		out  = make(map[string]int)
-		pwd  = func() string {
-			d := strings.Join(cwd, "/")
-			if d == "" {
-				d = "/"
-			}
-			return d
-		}
-	)
-	walk = func(f *File) int {
-		cwd.Push(f.Name)
-		defer cwd.Pop()
-		if f.Children == nil {
-			return f.Size
-		}
-		var n int
-		for _, c := range f.Children {
-			n += walk(c)
-		}
-		out[pwd()] = n
-		return n
+// Walk root in post-order.
+func Walk(root *File, f func(*File)) {
+	defer f(root)
+	for _, c := range root.Children {
+		Walk(c, f)
 	}
-	walk(root)
-	return out
 }
 
-func DiskUsageSmall(du map[string]int) int {
-	var total int
-	for _, v := range du {
-		if v < 100000 {
-			total += v
+func SetSizes(root *File) {
+	Walk(root, func(f *File) {
+		for _, c := range f.Children {
+			f.Size += c.Size
 		}
-	}
+	})
+}
+
+func SumSmallDirs(root *File) (total int) {
+	Walk(root, func(f *File) {
+		if f.Children != nil && f.Size < 100000 {
+			total += f.Size
+		}
+	})
 	return total
 }
 
-func FreeSpace(du map[string]int, total, need int) (string, int) {
-	free := total - du["/"]
-	bestD := "/"
-	bestN := du["/"]
-	for k, v := range du {
-		if free+v >= need && v < bestN {
-			bestD, bestN = k, v
+func FreeSpace(root *File, total, need int) (freed int) {
+	free := total - root.Size
+	best := root.Size
+	Walk(root, func(f *File) {
+		if free+f.Size >= need && f.Size < best {
+			best = f.Size
 		}
-	}
-	return bestD, bestN
+	})
+	return best
 }
