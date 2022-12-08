@@ -1,4 +1,4 @@
-module github.com/Merovius/aoc_2022
+module github.com/Merovius/AdventOfCode
 
 go 1.19
 
