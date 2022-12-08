@@ -6,7 +6,7 @@ import (
 	"math"
 	"os"
 
-	"github.com/Merovius/aoc_2020/aoc"
+	"github.com/Merovius/AdventOfCode/2020/aoc"
 )
 
 func main() {

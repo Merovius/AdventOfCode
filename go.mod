@@ -1,5 +1,5 @@
-module github.com/Merovius/aoc_2020
+module github.com/Merovius/AdventOfCode
 
-go 1.15
+go 1.19
 
 require github.com/google/go-cmp v0.5.4
