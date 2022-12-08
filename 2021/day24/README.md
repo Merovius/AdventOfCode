@@ -2,7 +2,7 @@ The code reads input.txt and transforms it into a graph.
 It then applies a bunch of graph transformations, to simplify it.
 At this point, you can look at the graph:
 
-![graph.svg](https://raw.githubusercontent.com/Merovius/aoc_2021/master/day24/graph.svg)
+![graph.svg](https://raw.githubusercontent.com/Merovius/AdventOfCode/main/2021/day24/graph.svg)
 
 With a bit of squinting, you can see that the code simulates a stack machine,
 by encoding the stack into a base 26 number. `Push`ing a number (less than 26)

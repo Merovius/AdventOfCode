@@ -1,8 +1,9 @@
 package priority_queue
 
 import (
-	"constraints"
 	"container/heap"
+
+	"golang.org/x/exp/constraints"
 )
 
 type Q[T any] struct {

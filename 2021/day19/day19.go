@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Merovius/aoc_2021/go/set"
-	"github.com/Merovius/aoc_2021/go/vec"
+	"github.com/Merovius/AdventOfCode/2021/go/set"
+	"github.com/Merovius/AdventOfCode/2021/go/vec"
 )
 
 func main() {
