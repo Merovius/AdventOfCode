@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Merovius/AdventOfCode/2022/internal/set"
+	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
