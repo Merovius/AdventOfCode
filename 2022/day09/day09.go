@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	. "github.com/Merovius/AdventOfCode/internal/math"
 	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
@@ -96,27 +97,9 @@ func Step(p Pos, d Direction) Pos {
 
 func Pull(h, t Pos) Pos {
 	δx, δy := Delta(t, h)
-	if abs(δx) > 1 || abs(δy) > 1 {
-		t.X += sgn(δx)
-		t.Y += sgn(δy)
+	if Abs(δx) > 1 || Abs(δy) > 1 {
+		t.X += Sgn(δx)
+		t.Y += Sgn(δy)
 	}
 	return t
-}
-
-func abs(v int) int {
-	if v < 0 {
-		return -v
-	}
-	return v
-}
-
-func sgn(v int) int {
-	switch {
-	case v < 0:
-		return -1
-	case v > 0:
-		return 1
-	default:
-		return 0
-	}
 }

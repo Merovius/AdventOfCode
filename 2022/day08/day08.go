@@ -7,6 +7,8 @@ import (
 	"io"
 	"log"
 	"os"
+
+	. "github.com/Merovius/AdventOfCode/internal/math"
 )
 
 func main() {
@@ -80,7 +82,7 @@ func (m *Map) Visit(r Ray, f func(int) bool) {
 	if (r.δi == 0) == (r.δj == 0) {
 		panic("exactly one of r.δi or r.δj must be 0")
 	}
-	if r.δi < -1 || r.δi > 1 || r.δj < -1 || r.δj > 1 {
+	if Abs(r.δi) > 1 || Abs(r.δj) > 1 {
 		panic("r.δi and r.δj must be in [-1,1]")
 	}
 	for i, j := r.i+r.δi, r.j+r.δj; m.Valid(i, j); i, j = i+r.δi, j+r.δj {
