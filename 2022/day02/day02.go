@@ -1,39 +1,36 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"strings"
+
+	"github.com/Merovius/AdventOfCode/internal/input"
 )
 
 func main() {
-	data, err := ReadInput(os.Stdin)
+	// TODO: support array-parsing in input package
+	toArr := func(x []int) ([2]int, error) {
+		if len(x) != 2 {
+			return [2]int{}, fmt.Errorf("want 2 elements, got %d", len(x))
+		}
+		return ([2]int)(x[:]), nil
+	}
+
+	data, err := input.Lines(input.Map(input.Fields(input.Map(input.Rune, func(r rune) (int, error) {
+		if r >= 'A' && r <= 'C' {
+			return int(r - 'A'), nil
+		}
+		if r >= 'X' && r <= 'Z' {
+			return int(r - 'X'), nil
+		}
+		return 0, fmt.Errorf("invalid character %q", r)
+	})), toArr)).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("Predicted score: %d\n", Score(data))
 	fmt.Printf("Real score: %d\n", RealScore(data))
-}
-
-func ReadInput(r io.Reader) ([][2]int, error) {
-	var out [][2]int
-	s := bufio.NewScanner(r)
-	for s.Scan() {
-		l := strings.TrimSpace(s.Text())
-		a, b, ok := strings.Cut(l, " ")
-		if !ok || len(a) != 1 || len(b) != 1 {
-			return nil, fmt.Errorf("invalid line %q", l)
-		}
-		x, y := int(a[0]-'A'), int(b[0]-'X')
-		if x < 0 || x > 2 || y < 0 || y > 2 {
-			return nil, fmt.Errorf("invalid line %q", l)
-		}
-		out = append(out, [2]int{x, y})
-	}
-	return out, s.Err()
 }
 
 func Score(guide [][2]int) int {

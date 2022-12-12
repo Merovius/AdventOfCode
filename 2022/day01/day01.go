@@ -1,20 +1,17 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 
+	"github.com/Merovius/AdventOfCode/internal/input"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 )
 
 func main() {
-	c, err := ReadInput(os.Stdin)
+	c, err := input.Blocks(input.Lines(input.Signed[int])).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,27 +26,6 @@ func main() {
 		t += a[len(a)-i]
 	}
 	fmt.Printf("The three most heavily loaded elves carry %d calories\n", t)
-}
-
-func ReadInput(r io.Reader) ([][]int, error) {
-	var (
-		out [][]int
-		cur []int
-	)
-	s := bufio.NewScanner(r)
-	for s.Scan() {
-		t := strings.TrimSpace(s.Text())
-		if t == "" {
-			out, cur = append(out, cur), nil
-			continue
-		}
-		n, err := strconv.Atoi(t)
-		if err != nil {
-			return nil, err
-		}
-		cur = append(cur, n)
-	}
-	return out, s.Err()
 }
 
 func Aggregate(c [][]int) []int {

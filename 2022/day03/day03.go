@@ -1,20 +1,19 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/Merovius/AdventOfCode/internal/input"
 	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
-	contents, err := ReadInput(os.Stdin)
+	contents, err := input.Lines(input.String).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,22 +28,6 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Printf("Total priority of badge items: %d\n", Priorities(badges))
-}
-
-func ReadInput(r io.Reader) ([]string, error) {
-	var out []string
-	s := bufio.NewScanner(r)
-	for s.Scan() {
-		l := strings.TrimSpace(s.Text())
-		i := strings.IndexFunc(l, func(r rune) bool {
-			return (r < 'a' || r > 'z') && (r < 'A' || r > 'Z')
-		})
-		if i >= 0 {
-			return nil, fmt.Errorf("invalid rucksack %q", l)
-		}
-		out = append(out, l)
-	}
-	return out, s.Err()
 }
 
 func SplitCompartments(rs []string) [][2]string {
