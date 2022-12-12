@@ -1,15 +1,14 @@
 package main
 
 import (
-	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/graph"
+	"github.com/Merovius/AdventOfCode/internal/grid"
+	"golang.org/x/exp/slices"
 )
 
 func main() {
@@ -17,11 +16,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	part1 := &Graph{
 		Grid:      g,
 		ValidEdge: func(a, b int) bool { return b-a <= 1 },
 	}
-	path := graph.BreadthFirstSearch[Point, Edge](part1, g.Start, func(p Point) bool { return p == g.End })
+	path := graph.BreadthFirstSearch[grid.Pos, Edge](part1, g.Start, func(p grid.Pos) bool { return p == g.End })
 	if path == nil {
 		log.Fatal("No path found")
 	}
@@ -31,7 +31,7 @@ func main() {
 		Grid:      g,
 		ValidEdge: func(a, b int) bool { return a-b <= 1 },
 	}
-	path = graph.BreadthFirstSearch[Point, Edge](part2, g.End, func(p Point) bool { return g.At(p) == 0 })
+	path = graph.BreadthFirstSearch[grid.Pos, Edge](part2, g.End, func(p grid.Pos) bool { return g.At(p) == 0 })
 	if path == nil {
 		log.Fatal("No path found")
 	}
@@ -39,65 +39,52 @@ func main() {
 }
 
 func ReadInput(r io.Reader) (*Grid, error) {
-	var cells []string
-	s := bufio.NewScanner(r)
-	for s.Scan() {
-		cells = append(cells, strings.TrimSpace(s.Text()))
-	}
-	if err := s.Err(); err != nil {
-		return nil, err
-	}
-	if len(cells) == 0 {
-		return nil, errors.New("empty input")
-	}
-	sr, sc, er, ec, w := -1, -1, -1, -1, len(cells[0])
-
-	for r := range cells {
-		if len(cells[r]) != w {
-			return nil, errors.New("inconsistent line length")
+	const (
+		StartMarker = -iota - 1
+		EndMarker
+	)
+	gg, err := grid.Read(os.Stdin, func(c rune) (int, error) {
+		switch {
+		case c == 'S':
+			return StartMarker, nil
+		case c == 'E':
+			return EndMarker, nil
+		case 'a' <= c && c <= 'z':
+			return int(c - 'a'), nil
+		default:
+			return 0, fmt.Errorf("invalid codepoint %q", c)
 		}
-		for c := range cells[r] {
-			if cells[r][c] == 'S' {
-				sr, sc = r, c
-			}
-			if cells[r][c] == 'E' {
-				er, ec = r, c
-			}
-		}
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
-	return &Grid{
-		Start:  Point{sr, sc},
-		End:    Point{er, ec},
-		Width:  w,
-		Height: len(cells),
-		Cells:  cells,
-	}, nil
+	g := &Grid{
+		Grid: gg,
+	}
+	if i := slices.Index(g.G, StartMarker); i >= 0 {
+		g.Start = g.Pos(i)
+		g.Set(g.Start, 0)
+	} else {
+		log.Fatal("No start marker")
+	}
+	if i := slices.Index(g.G, EndMarker); i >= 0 {
+		g.End = g.Pos(i)
+		g.Set(g.End, 25)
+	} else {
+		log.Fatal("No start marker")
+	}
+	return g, nil
 }
 
 type Grid struct {
-	Start  Point
-	End    Point
-	Width  int
-	Height int
-	Cells  []string
-}
-
-type Point struct {
-	Row int
-	Col int
-}
-
-func (p Point) Add(r, c int) Point {
-	return Point{p.Row + r, p.Col + c}
-}
-
-func (p Point) String() string {
-	return fmt.Sprintf("(%d,%d)", p.Row+1, p.Col+1)
+	*grid.Grid[int]
+	Start grid.Pos
+	End   grid.Pos
 }
 
 type Edge struct {
-	From Point
-	To   Point
+	From grid.Pos
+	To   grid.Pos
 }
 
 type Graph struct {
@@ -105,13 +92,9 @@ type Graph struct {
 	ValidEdge func(int, int) bool
 }
 
-func (g *Graph) Edges(p Point) []Edge {
+func (g *Graph) Edges(p grid.Pos) []Edge {
 	var out []Edge
-	for _, δ := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
-		n := p.Add(δ[0], δ[1])
-		if !g.Valid(n) {
-			continue
-		}
+	for _, n := range g.Neigh4(p) {
 		if !g.ValidEdge(g.At(p), g.At(n)) {
 			continue
 		}
@@ -120,21 +103,6 @@ func (g *Graph) Edges(p Point) []Edge {
 	return out
 }
 
-func (g *Graph) From(e Edge) Point { return e.From }
+func (g *Graph) From(e Edge) grid.Pos { return e.From }
 
-func (g *Graph) To(e Edge) Point { return e.To }
-
-func (g *Grid) At(p Point) int {
-	v := g.Cells[p.Row][p.Col]
-	if v == 'S' {
-		v = 'a'
-	}
-	if v == 'E' {
-		v = 'z'
-	}
-	return int(v - 'a')
-}
-
-func (g *Grid) Valid(p Point) bool {
-	return p.Row >= 0 && p.Row < g.Height && p.Col >= 0 && p.Col < g.Width
-}
+func (g *Graph) To(e Edge) grid.Pos { return e.To }
