@@ -4,20 +4,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/input"
 )
 
 func main() {
-	// TODO: support array-parsing in input package
-	toArr := func(x []int) ([2]int, error) {
-		if len(x) != 2 {
-			return [2]int{}, fmt.Errorf("want 2 elements, got %d", len(x))
-		}
-		return ([2]int)(x[:]), nil
-	}
-
-	data, err := input.Lines(input.Map(input.Fields(input.Map(input.Rune, func(r rune) (int, error) {
+	data, err := input.Lines(input.Array[[2]int](strings.Fields, input.Map(input.Rune, func(r rune) (int, error) {
 		if r >= 'A' && r <= 'C' {
 			return int(r - 'A'), nil
 		}
@@ -25,7 +18,7 @@ func main() {
 			return int(r - 'X'), nil
 		}
 		return 0, fmt.Errorf("invalid character %q", r)
-	})), toArr)).Parse(os.Stdin)
+	}))).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

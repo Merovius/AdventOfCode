@@ -64,6 +64,33 @@ func Fields[T any](p Parser[T]) Parser[[]T] {
 	return SplitFunc(strings.Fields, p)
 }
 
+// Array splits a string using split and calls p for each piece. A must be an
+// array type with element type T.
+func Array[A, T any](split func(string) []string, p Parser[T]) Parser[A] {
+	tt := reflect.TypeOf(new(T)).Elem()
+	at := reflect.TypeOf(new(A)).Elem()
+	if at.Kind() != reflect.Array || at.Elem() != tt {
+		panic(fmt.Errorf("%v is not an […]%v array type", at, tt))
+	}
+	n := at.Len()
+	return func(s string) (A, error) {
+		var a A
+		sp := split(s)
+		if len(sp) != n {
+			return a, fmt.Errorf("expected %d pieces, got %d", len(sp), n)
+		}
+		av := reflect.ValueOf(&a).Elem()
+		for i, s := range sp {
+			v, err := p(s)
+			if err != nil {
+				return a, err
+			}
+			av.Index(i).Set(reflect.ValueOf(v))
+		}
+		return a, nil
+	}
+}
+
 // Reflect builds a reflection based parser for T. It panics if T can't be
 // parsed automatically.
 func Reflect[T any]() Parser[T] {
