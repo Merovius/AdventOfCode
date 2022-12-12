@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/graph"
+	"github.com/Merovius/AdventOfCode/internal/math"
 )
 
 func main() {
@@ -21,7 +22,7 @@ func main() {
 		Grid:      g,
 		ValidEdge: func(a, b int) bool { return b-a <= 1 },
 	}
-	path := graph.ShortestPath[Point, Edge](part1, g.Start, func(p Point) bool { return p == g.End })
+	path := graph.AStar[Point, Edge, int](part1, g.Start, func(p Point) bool { return p == g.End }, part1.AStarHeuristic)
 	if path == nil {
 		log.Fatal("No path found")
 	}
@@ -31,7 +32,7 @@ func main() {
 		Grid:      g,
 		ValidEdge: func(a, b int) bool { return a-b <= 1 },
 	}
-	path = graph.ShortestPath[Point, Edge](part2, g.End, func(p Point) bool { return g.At(p) == 0 })
+	path = graph.Dijkstra[Point, Edge, int](part2, g.End, func(p Point) bool { return g.At(p) == 0 })
 	if path == nil {
 		log.Fatal("No path found")
 	}
@@ -123,6 +124,12 @@ func (g *Graph) Edges(p Point) []Edge {
 func (g *Graph) From(e Edge) Point { return e.From }
 
 func (g *Graph) To(e Edge) Point { return e.To }
+
+func (g *Graph) Weight(e Edge) int { return 1 }
+
+func (g *Graph) AStarHeuristic(p Point) int {
+	return math.Abs(p.Row-g.End.Row) + math.Abs(p.Col-g.End.Col)
+}
 
 func (g *Grid) At(p Point) int {
 	v := g.Cells[p.Row][p.Col]
