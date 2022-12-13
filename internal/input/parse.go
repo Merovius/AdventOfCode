@@ -24,6 +24,16 @@ func (p Parser[T]) Parse(r io.Reader) (T, error) {
 	return p(string(bytes.TrimSpace(buf)))
 }
 
+// SplitBlocks splits s into blocks separated by empty lines.
+func SplitBlocks(s string) []string {
+	return strings.Split(s, "\n\n")
+}
+
+// SplitLines splits s into lines.
+func SplitLines(s string) []string {
+	return strings.Split(s, "\n")
+}
+
 // SplitFunc splits a string using split and calls p on each piece.
 func SplitFunc[T any](split func(string) []string, p Parser[T]) Parser[[]T] {
 	return func(s string) ([]T, error) {
