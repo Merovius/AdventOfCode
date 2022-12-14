@@ -66,6 +66,14 @@ func Read[T any](r io.Reader, fromRune func(rune) (T, error)) (*Grid[T], error) 
 	return g, nil
 }
 
+func New[T any](w, h int) *Grid[T] {
+	return &Grid[T]{
+		W: w,
+		H: h,
+		G: make([]T, w*h),
+	}
+}
+
 func (g *Grid[T]) At(p Pos) T {
 	return g.G[g.W*p.Row+p.Col]
 }
