@@ -9,7 +9,6 @@ import (
 	"github.com/Merovius/AdventOfCode/internal/input"
 	"github.com/Merovius/AdventOfCode/internal/interval"
 	"github.com/Merovius/AdventOfCode/internal/math"
-	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
@@ -98,11 +97,6 @@ func CoveredIntervals(s []Scanner, row int) *Set {
 }
 
 func Find(s []Scanner, bound int) Point {
-	occupied := make(set.Set[Point])
-	for _, s := range s {
-		occupied.Add(s.Pos)
-		occupied.Add(s.Beacon)
-	}
 	valid := Interval{Min: 0, Max: bound}
 	for y := 0; y <= bound; y++ {
 		excluded := CoveredIntervals(s, y)
