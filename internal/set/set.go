@@ -14,6 +14,10 @@ func (s Set[E]) Add(e E) {
 	s[e] = struct{}{}
 }
 
+func (s Set[E]) Delete(e E) {
+	delete(s, e)
+}
+
 func (s Set[E]) Contains(e E) bool {
 	_, ok := s[e]
 	return ok

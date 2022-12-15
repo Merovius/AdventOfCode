@@ -10,3 +10,9 @@ require (
 	golang.org/x/net v0.4.0
 	gonih.org v0.0.0-20220709142908-eee07dfc6929
 )
+
+require (
+	github.com/sanity-io/litter v1.5.1 // indirect
+	github.com/thepudds/fzgen v0.4.2 // indirect
+	gonih.org/rnd v0.0.0-20220219101358-d0033f7bc410 // indirect
+)
