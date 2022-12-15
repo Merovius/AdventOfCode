@@ -15,13 +15,14 @@ func FuzzSet(f *testing.F) {
 		if err != nil {
 			return
 		}
-		s := new(Set[int16])
+		type Interval = CO[int16]
+		s := new(Set[Interval, int16])
 		for _, c := range calls {
 			switch c.Op {
 			case opAdd:
-				i := I[int16]{c.Arg1, c.Arg2}
+				i := Interval{c.Arg1, c.Arg2}
 				s.Add(i)
-				s.check()
+				s.set.check()
 				if i.Empty() {
 					continue
 				}
@@ -31,9 +32,9 @@ func FuzzSet(f *testing.F) {
 					t.Fatalf("s.Contains(%v) = false, want true", v)
 				}
 			case opIntersect:
-				i := I[int16]{c.Arg1, c.Arg2}
+				i := Interval{c.Arg1, c.Arg2}
 				s.Intersect(i)
-				s.check()
+				s.set.check()
 				for _, j := range s.Intervals() {
 					if j.Min < i.Min || j.Max > i.Max {
 						t.Fatalf("s.Intervals contains %v, which is not a subset of %v", j, i)
@@ -42,8 +43,6 @@ func FuzzSet(f *testing.F) {
 			default:
 				return
 			}
-			s.check()
-
 		}
 	})
 }

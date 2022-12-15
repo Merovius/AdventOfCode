@@ -1,223 +1,278 @@
-// Package interval implements half-open intervals of integers.
+// Package interval implements intervals of integers.
+//
+// Interval types are named by whether or not either of their ends is
+// open/closed. For example, the type CO is closed on the left and open on the
+// right, so it describes the interval type [a,b).
+//
+// Only signed integers are supported, to make arithmetic simpler. In general,
+// the package will note behave well in the presence of overflows.
+//
+// The package also includes a Set type, which can efficiently store sparse
+// integer intervals. It is parameterized, so can be used with any of the
+// interval types in this package.
+//
+// The easiest way to use it is to define a local alias for the interval kind
+// appropriate for the problem, e.g.
+//
+//	type Interval = interval.CO[int]
 package interval
 
 import (
 	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/math"
 	"golang.org/x/exp/constraints"
 )
 
-// I is the half-open interval [Min,Max). In well-formed intervals, Max≥Min.
-type I[T constraints.Integer] struct {
+// Interval is a constraint for any of the interval types in this package
+type Interval[T constraints.Signed] interface {
+	CO[T] | OC[T] | OO[T] | CC[T]
+	toCO() CO[T]
+}
+
+// Convert between interval kinds.
+func Convert[J, I Interval[T], T constraints.Signed](i I) J {
+	switch any(*new(J)).(type) {
+	case CO[T]:
+		return any(i.toCO()).(J)
+	case OC[T]:
+		return any(i.toCO().toOC()).(J)
+	case OO[T]:
+		return any(i.toCO().toOO()).(J)
+	case CC[T]:
+		return any(i.toCO().toCC()).(J)
+	default:
+		panic("unreachable")
+	}
+}
+
+// CO is a right half-open interval of T, that is [Min, Max). Well-formed
+// intervals have Min≤Max, the empty interval is {0,0}.
+type CO[T constraints.Signed] struct {
 	Min T
 	Max T
 }
 
-// Empty returns if i is the empty interval.
-func (i I[T]) Empty() bool {
-	return i.Min >= i.Max
+func (i CO[T]) toCO() CO[T] {
+	return i
 }
 
-func (i I[T]) Len() int {
+func (i CO[T]) toOC() OC[T] {
+	return OC[T]{i.Min - 1, i.Max - 1}
+}
+
+func (i CO[T]) toOO() OO[T] {
+	return OO[T]{i.Min + 1, i.Max}
+}
+
+func (i CO[T]) toCC() CC[T] {
+	return CC[T]{i.Min, i.Max - 1}
+}
+
+// Empty returns if i is the empty interval.
+func (i CO[T]) Empty() bool {
+	return i.Len() <= 0
+}
+
+// Len returns the size of the interval.
+func (i CO[T]) Len() int {
 	return int(i.Max - i.Min)
 }
 
-func (i I[T]) valid() bool {
+func (i CO[T]) valid() bool {
 	return i.Max >= i.Min
 }
 
 // Contains returns whether i contains v.
-func (i I[T]) Contains(v T) bool {
+func (i CO[T]) Contains(v T) bool {
 	return i.Min >= v && i.Max < v
 }
 
 // Intersect returns the intersection of i and j.
-func (i I[T]) Intersect(j I[T]) I[T] {
+func (i CO[T]) Intersect(j CO[T]) CO[T] {
 	if i.Min >= j.Max || j.Min >= i.Max {
-		return I[T]{}
+		return CO[T]{}
 	}
-	return I[T]{math.Max(i.Min, j.Min), math.Min(i.Max, j.Max)}
+	return CO[T]{math.Max(i.Min, j.Min), math.Min(i.Max, j.Max)}
 }
 
 // Intersects returns whether i and j intersect.
-func (i I[T]) Intersects(j I[T]) bool {
+func (i CO[T]) Intersects(j CO[T]) bool {
 	return i.Min < j.Max && j.Min < i.Max
 }
 
 // Union returns the union of i and j, if it is an interval. Otherwise, it
 // returns the empty interval and false.
-func (i I[T]) Union(j I[T]) (I[T], bool) {
+func (i CO[T]) Union(j CO[T]) (CO[T], bool) {
 	if i.Min == j.Max {
-		return I[T]{j.Min, i.Max}, true
+		return CO[T]{j.Min, i.Max}, true
 	}
 	if j.Min == i.Max {
-		return I[T]{i.Min, j.Max}, true
+		return CO[T]{i.Min, j.Max}, true
 	}
 	if i.Intersects(j) {
-		return I[T]{math.Min(i.Min, j.Min), math.Max(i.Max, j.Max)}, true
+		return CO[T]{math.Min(i.Min, j.Min), math.Max(i.Max, j.Max)}, true
 	}
-	return I[T]{}, false
+	return CO[T]{}, false
 }
 
-func (i I[T]) String() string {
+// String implements fmt.Stringer.
+func (i CO[T]) String() string {
 	return fmt.Sprintf("[%d,%d)", i.Min, i.Max)
 }
 
-// Set is a set of T, buildt out of intervals.
-type Set[T constraints.Integer] struct {
-	// the slice is in canonical form, that is all intervals are not empty and
-	// s[i+1].Min > s[i].Max
-	s []I[T]
+// OC is a left half-open interval of T, that is (Min, Max]. Well-formed intervals have
+// Min≤Max, the empty interval is {0,0}.
+type OC[T constraints.Signed] struct {
+	Min T
+	Max T
 }
 
-// Contains returns whether s contains v.
-func (s *Set[T]) Contains(v T) bool {
-	n, ok := search(s.s, v, func(i I[T], v T) int {
-		return math.Cmp(i.Min, v)
-	})
-	if ok {
-		return true
-	}
-	if n == 0 {
-		return false
-	}
-	return v < s.s[n-1].Max
+func (i OC[T]) toCO() CO[T] {
+	return CO[T]{i.Min + 1, i.Max + 1}
 }
 
-// Len returns the number of elements in s.
-func (s *Set[T]) Len() int {
-	var n int
-	for _, i := range s.s {
-		n += i.Len()
-	}
-	return n
+// Empty returns if i is the empty interval.
+func (i OC[T]) Empty() bool {
+	return i.toCO().Empty()
 }
 
-// Add adds the interval i to s.
-func (s *Set[T]) Add(i I[T]) {
-	if i.Empty() {
-		return
-	}
-
-	lo, lok := search(s.s, i.Min, func(j I[T], v T) int {
-		if v > j.Max {
-			return -1
-		}
-		if v+1 < j.Min {
-			return 1
-		}
-		return 0
-	})
-	hi, hok := search(s.s, i.Max, func(j I[T], v T) int {
-		if v > j.Max {
-			return -1
-		}
-		if v+1 < j.Min {
-			return 1
-		}
-		return 0
-	})
-	if lok {
-		i.Min = math.Min(i.Min, s.s[lo].Min)
-	}
-	if hok {
-		i.Max = math.Max(i.Max, s.s[hi].Max)
-		hi++
-	}
-	if hi < lo {
-		panic("hi < lo")
-	}
-	if hi == lo {
-		s.s = append(s.s, I[T]{})
-		copy(s.s[hi+1:], s.s[hi:])
-		hi++
-	}
-	s.s = append(append(s.s[:lo], i), s.s[hi:]...)
+// Len returns the size of the interval.
+func (i OC[T]) Len() int {
+	return i.toCO().Len()
 }
 
-// Intersect intersects i into s.
-func (s *Set[T]) Intersect(i I[T]) {
-	lo, lok := search(s.s, i.Min, func(j I[T], v T) int {
-		if v >= j.Max {
-			return -1
-		}
-		if v < j.Min {
-			return 1
-		}
-		return 0
-	})
-	if lok {
-		s.s[lo].Min = math.Max(s.s[lo].Min, i.Min)
-		if s.s[lo].Empty() {
-			lo++
-		}
-	}
-	s.s = s.s[lo:]
-	hi, hok := search(s.s, i.Max, func(j I[T], v T) int {
-		if v >= j.Max {
-			return -1
-		}
-		if v < j.Min {
-			return 1
-		}
-		return 0
-	})
-	if hok {
-		s.s[hi].Max = math.Min(s.s[hi].Max, i.Max)
-		if !s.s[hi].Empty() {
-			hi++
-		}
-	}
-	s.s = s.s[:hi]
+func (i OC[T]) valid() bool {
+	return i.toCO().valid()
 }
 
-// Continuous returns whether s is representable by a single interval. The
-// empty set is considered continuous.
-func (s *Set[T]) Continuous() bool {
-	return len(s.s) <= 1
+// Contains returns whether i contains v.
+func (i OC[T]) Contains(v T) bool {
+	return i.toCO().Contains(v)
 }
 
-// Intervals returns a copy of the intervals in s.
-func (s *Set[T]) Intervals() []I[T] {
-	return append([]I[T](nil), s.s...)
+// Intersect returns the intersection of i and j.
+func (i OC[T]) Intersect(j OC[T]) OC[T] {
+	return i.toCO().Intersect(j.toCO()).toOC()
 }
 
-func (s *Set[T]) check() {
-	if len(s.s) == 0 {
-		return
-	}
-	i := s.s[0]
-	if !i.valid() {
-		panic(fmt.Errorf("invalid interval %v in set", i))
-	}
-	for _, j := range s.s[1:] {
-		if !j.valid() {
-			panic(fmt.Errorf("invalid interval %v in set", i))
-		}
-		if j.Min <= i.Max || j.Max <= i.Min {
-			panic(fmt.Errorf("invalid successive pair %v and %v in set", i, j))
-		}
-		i = j
-	}
+// Intersects returns whether i and j intersect.
+func (i OC[T]) Intersects(j OC[T]) bool {
+	return i.toCO().Intersects(j.toCO())
 }
 
-func (s Set[T]) String() string {
-	var parts []string
-	for _, i := range s.s {
-		parts = append(parts, fmt.Sprint(i))
-	}
-	return "{" + strings.Join(parts, ", ") + "}"
+// Union returns the union of i and j, if it is an interval. Otherwise, it
+// returns the empty interval and false.
+func (i OC[T]) Union(j OC[T]) (OC[T], bool) {
+	u, ok := i.toCO().Union(j.toCO())
+	return u.toOC(), ok
 }
 
-func search[A, B any](x []A, target B, cmp func(A, B) int) (int, bool) {
-	pos := sort.Search(len(x), func(i int) bool {
-		return cmp(x[i], target) >= 0
-	})
-	if pos >= len(x) || cmp(x[pos], target) != 0 {
-		return pos, false
-	}
-	return pos, true
+// String implements fmt.Stringer.
+func (i OC[T]) String() string {
+	return fmt.Sprintf("(%d,%d]", i.Min, i.Max)
+}
+
+// OO is an open interval of T, that is (Min, Max). Well-formed intervals have
+// Min≤Max+1, the empty interval is {0,1}.
+type OO[T constraints.Signed] struct {
+	Min T
+	Max T
+}
+
+func (i OO[T]) toCO() CO[T] {
+	return CO[T]{i.Min - 1, i.Max}
+}
+
+// Empty returns if i is the empty interval.
+func (i OO[T]) Empty() bool {
+	return i.toCO().Empty()
+}
+
+// Len returns the size of the interval.
+func (i OO[T]) Len() int {
+	return i.toCO().Len()
+}
+
+func (i OO[T]) valid() bool {
+	return i.toCO().valid()
+}
+
+// Contains returns whether i contains v.
+func (i OO[T]) Contains(v T) bool {
+	return i.toCO().Contains(v)
+}
+
+// Intersect returns the intersection of i and j.
+func (i OO[T]) Intersect(j OO[T]) OO[T] {
+	return i.toCO().Intersect(j.toCO()).toOO()
+}
+
+// Intersects returns whether i and j intersect.
+func (i OO[T]) Intersects(j OO[T]) bool {
+	return i.toCO().Intersects(j.toCO())
+}
+
+// Union returns the union of i and j, if it is an interval. Otherwise, it
+// returns the empty interval and false.
+func (i OO[T]) Union(j OO[T]) (OO[T], bool) {
+	u, ok := i.toCO().Union(j.toCO())
+	return u.toOO(), ok
+}
+
+// String implements fmt.Stringer.
+func (i OO[T]) String() string {
+	return fmt.Sprintf("(%d,%d]", i.Min, i.Max)
+}
+
+// CC is a closed interval of T, that is [Min, Max]. Well-formed intervals have
+// Min≤Max+1, the empty interval is {0,-1}.
+type CC[T constraints.Signed] struct {
+	Min T
+	Max T
+}
+
+func (i CC[T]) toCO() CO[T] {
+	return CO[T]{i.Min, i.Max + 1}
+}
+
+// Empty returns if i is the empty interval.
+func (i CC[T]) Empty() bool {
+	return i.toCO().Empty()
+}
+
+// Len returns the size of the interval.
+func (i CC[T]) Len() int {
+	return i.toCO().Len()
+}
+
+func (i CC[T]) valid() bool {
+	return i.toCO().valid()
+}
+
+// Contains returns whether i contains v.
+func (i CC[T]) Contains(v T) bool {
+	return i.toCO().Contains(v)
+}
+
+// Intersect returns the intersection of i and j.
+func (i CC[T]) Intersect(j CC[T]) CC[T] {
+	return i.toCO().Intersect(j.toCO()).toCC()
+}
+
+// Intersects returns whether i and j intersect.
+func (i CC[T]) Intersects(j CC[T]) bool {
+	return i.toCO().Intersects(j.toCO())
+}
+
+// Union returns the union of i and j, if it is an interval. Otherwise, it
+// returns the empty interval and false.
+func (i CC[T]) Union(j CC[T]) (CC[T], bool) {
+	u, ok := i.toCO().Union(j.toCO())
+	return u.toCC(), ok
+}
+
+// String implements fmt.Stringer.
+func (i CC[T]) String() string {
+	return fmt.Sprintf("[%d,%d]", i.Min, i.Max)
 }

@@ -41,6 +41,10 @@ func main() {
 	fmt.Printf("Beacon is at %v and has tuning frequency %v\n", p, p.X*4000000+p.Y)
 }
 
+type Interval = interval.CO[int]
+
+type Set = interval.Set[Interval, int]
+
 type Scanner struct {
 	Pos    Point
 	Beacon Point
@@ -72,17 +76,17 @@ func (p Point) String() string {
 	return fmt.Sprintf("(%v,%v)", p.X, p.Y)
 }
 
-func (s Scanner) IntersectRow(y int) (interval.I[int], bool) {
+func (s Scanner) IntersectRow(y int) (Interval, bool) {
 	R := s.Pos.Dist(s.Beacon)
 	δy := math.Abs(s.Pos.Y - y)
 	if δy > R {
-		return interval.I[int]{}, false
+		return Interval{}, false
 	}
-	return interval.I[int]{Min: s.Pos.X - (R - δy), Max: s.Pos.X + (R - δy)}, true
+	return Interval{Min: s.Pos.X - (R - δy), Max: s.Pos.X + (R - δy)}, true
 }
 
-func CoveredIntervals(s []Scanner, row int) *interval.Set[int] {
-	covered := new(interval.Set[int])
+func CoveredIntervals(s []Scanner, row int) *Set {
+	covered := new(Set)
 	for _, s := range s {
 		i, ok := s.IntersectRow(row)
 		if !ok {
@@ -99,7 +103,7 @@ func Find(s []Scanner, bound int) Point {
 		occupied.Add(s.Pos)
 		occupied.Add(s.Beacon)
 	}
-	valid := interval.I[int]{Min: 0, Max: bound}
+	valid := Interval{Min: 0, Max: bound}
 	for y := 0; y <= bound; y++ {
 		excluded := CoveredIntervals(s, y)
 		excluded.Intersect(valid)
