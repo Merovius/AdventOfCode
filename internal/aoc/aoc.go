@@ -194,7 +194,7 @@ func (b *Leaderboard) UnmarshalJSON(buf []byte) error {
 	var err error
 	type completion struct {
 		StarIndex int   `json:"star_index"`
-		GetStarTS int64 `json:"get_start_ts"`
+		GetStarTS int64 `json:"get_star_ts"`
 	}
 	type member struct {
 		Stars              int                              `json:"stars"`

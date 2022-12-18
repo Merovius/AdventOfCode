@@ -35,12 +35,14 @@ func main() {
 		Cache:         aoc.DirCache(""),
 	}
 	subcommands.Register(new(inputCmd), "")
+	subcommands.Register(new(boardCmd), "")
 	os.Exit(int(subcommands.Execute(context.Background(), cfg, client)))
 }
 
 type config struct {
-	SessionCookie string `json:"session_cookie"`
-	Boards        []int  `json:"boards"`
+	SessionCookie string         `json:"session_cookie"`
+	Boards        map[string]int `json:"boards"`
+	DefaultBoard  string         `json:"default_board"`
 }
 
 type optString struct {
