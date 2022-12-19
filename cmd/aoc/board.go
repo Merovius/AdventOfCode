@@ -128,7 +128,7 @@ func (cmd *boardCmd) printBoard(b *aoc.Leaderboard) error {
 		for _, s := range stars {
 			switch s {
 			case 0:
-				fmt.Print("\033[37m☆\033[0m")
+				fmt.Print("\033[90m☆\033[0m")
 			case 1:
 				fmt.Print("\033[37m★\033[0m")
 			case 2:
