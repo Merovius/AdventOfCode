@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Merovius/AdventOfCode/internal/aoc"
@@ -87,13 +86,6 @@ func (cmd *boardCmd) Execute(ctx context.Context, f *flag.FlagSet, args ...any) 
 }
 
 func (cmd *boardCmd) printBoard(b *aoc.Leaderboard) error {
-	var nameMax int
-	for _, m := range b.Members {
-		nameMax = math.Max(nameMax, len(m.Name))
-	}
-	pad := strings.Repeat(" ", nameMax)
-	fmt.Println(pad, "         1111111111222222")
-	fmt.Println(pad, "1234567890123456789012345")
 	slices.SortStableFunc(b.Members, func(i, j aoc.LeaderboardMember) bool {
 		switch {
 		case i.LocalScore > j.LocalScore:
@@ -108,6 +100,19 @@ func (cmd *boardCmd) printBoard(b *aoc.Leaderboard) error {
 			return i.Name < j.Name
 		}
 	})
+	type line struct {
+		name     string
+		stars    []int
+		score    int
+		possible int
+	}
+	var (
+		lines         []line
+		nameMax       int
+		starsGotten   = make([]int, 25)
+		starsPossible = len(b.Members) * 2
+	)
+
 	for _, m := range b.Members {
 		stars := make([]int, 25)
 		slices.SortStableFunc(m.Days, func(i, j aoc.LeaderboardMemberDay) bool {
@@ -119,13 +124,43 @@ func (cmd *boardCmd) printBoard(b *aoc.Leaderboard) error {
 			}
 			if d.Part1 != nil {
 				stars[d.Day-1]++
+				starsGotten[d.Day-1]++
 			}
 			if d.Part2 != nil {
 				stars[d.Day-1]++
+				starsGotten[d.Day-1]++
 			}
 		}
-		fmt.Printf("% *s ", nameMax, m.Name)
-		for _, s := range stars {
+		lines = append(lines, line{
+			name:  m.Name,
+			stars: stars,
+			score: m.LocalScore,
+		})
+		nameMax = math.Max(nameMax, len(m.Name))
+	}
+	var (
+		scorePad    int
+		possiblePad int
+	)
+	for i := range lines {
+		l := &lines[i]
+		for i, s := range l.stars {
+			switch s {
+			case 0:
+				l.possible += starsPossible - starsGotten[i]
+			case 1:
+				l.possible += starsPossible - starsGotten[i] - 1
+			}
+		}
+		scorePad = math.Max(scorePad, len(strconv.Itoa(l.score)))
+		possiblePad = math.Max(possiblePad, len(strconv.Itoa(l.possible)))
+	}
+
+	fmt.Printf("%*s          1111111111222222\n", nameMax, "")
+	fmt.Printf("%*s 1234567890123456789012345\n", nameMax, "")
+	for _, l := range lines {
+		fmt.Printf("% *s ", nameMax, l.name)
+		for _, s := range l.stars {
 			switch s {
 			case 0:
 				fmt.Print("\033[90m☆\033[0m")
@@ -135,7 +170,7 @@ func (cmd *boardCmd) printBoard(b *aoc.Leaderboard) error {
 				fmt.Print("\033[33m★\033[0m")
 			}
 		}
-		fmt.Printf(" %d\n", m.LocalScore)
+		fmt.Printf(" %*d (%*d more achievable)\n", scorePad, l.score, possiblePad, l.possible)
 	}
 	return nil
 }
