@@ -83,13 +83,95 @@ func Slice[T any](split Splitter, p Parser[T]) Parser[[]T] {
 		}
 		return out, nil
 	}
+}
 
+// Map parses a map. It uses split to separate the input into key/value pairs
+// and then uses cut to cut them up into a key and a value, which are parsed
+// using k and v respectively.
+//
+// It errors if a key is duplicated.
+func Map[K comparable, V any](split, cut Splitter, k Parser[K], v Parser[V]) Parser[map[K]V] {
+	return func(s string) (map[K]V, error) {
+		sp, err := split(s)
+		if err != nil {
+			return nil, err
+		}
+		m := make(map[K]V)
+		for _, s := range sp {
+			sp, err := cut(s)
+			if err != nil || len(sp) != 2 {
+				return nil, fmt.Errorf("invalid key/value pair %q", s)
+			}
+			kk, err := k(sp[0])
+			if err != nil {
+				return nil, err
+			}
+			vv, err := v(sp[1])
+			if err != nil {
+				return nil, err
+			}
+			if _, ok := m[kk]; ok {
+				return nil, fmt.Errorf("duplicate key %q", kk)
+			}
+			m[kk] = vv
+		}
+		return m, nil
+	}
 }
 
 var (
 	stringType = reflect.TypeOf("")
 	errorType  = reflect.TypeOf(new(error)).Elem()
 )
+
+// isParser returns T, if t is a Parser[T]. Otherwise, returns nil.
+func isParser(t reflect.Type) reflect.Type {
+	if t.Kind() != reflect.Func {
+		return nil
+	}
+	if t.NumIn() != 1 || t.In(0) != stringType {
+		return nil
+	}
+	if t.NumOut() != 2 || t.Out(1) != errorType {
+		return nil
+	}
+	return t.Out(0)
+}
+
+// Any runs a set of parser, one after the other, returning the first succesful result.
+// The parsers don't have to return the same type, but they must return
+// something assignable to T.
+func Any[T any](p ...any) Parser[T] {
+	rp := make([]func(s string, rv reflect.Value) error, len(p))
+	tt := reflect.TypeOf(new(T)).Elem()
+	for i, p := range p {
+		rf := reflect.ValueOf(p)
+		t := isParser(rf.Type())
+		if t == nil {
+			panic(fmt.Errorf("%T is not a Parser[T]", p))
+		}
+		if !t.AssignableTo(tt) {
+			panic(fmt.Errorf("%v is not assignable to %v", t, tt))
+		}
+		rp[i] = func(s string, rv reflect.Value) error {
+			out := rf.Call([]reflect.Value{reflect.ValueOf(s)})
+			rv.Set(out[0])
+			if e := out[1].Interface(); e != nil {
+				return e.(error)
+			}
+			return nil
+		}
+	}
+	return func(s string) (v T, err error) {
+		rv := reflect.ValueOf(&v).Elem()
+		for _, p := range rp {
+			if err := p(s, rv); err == nil {
+				return v, err
+			}
+		}
+		return v, fmt.Errorf("can not parse %q as %T", s, v)
+	}
+}
 
 // Struct splits a string using split and parses the result into the fields of
 // a struct using the given parsers.
@@ -115,8 +197,12 @@ func Struct[S any](split Splitter, fields ...any) Parser[S] {
 		p := reflect.ValueOf(fields[0])
 		fields = fields[1:]
 		pt := p.Type()
-		if pt.Kind() != reflect.Func || pt.NumIn() != 1 || pt.In(0) != stringType || pt.NumOut() != 2 || pt.Out(0) != rf.Type || pt.Out(1) != errorType {
-			panic(fmt.Errorf("%v.%s does not match type %v", rt, rf.Name, pt.Out(0)))
+		tt := isParser(pt)
+		if tt == nil {
+			panic(fmt.Errorf("%v is not a Parser[T]", pt))
+		}
+		if !tt.AssignableTo(rf.Type) {
+			panic(fmt.Errorf("%v is not assignable to type %v of field %v.%s", tt, rf.Type, rt, rf.Name))
 		}
 
 		rp := func(s string, rv reflect.Value) error {
@@ -220,8 +306,6 @@ type parseIface interface {
 var parseT = reflect.TypeOf(new(parseIface)).Elem()
 
 // String parses any string as itself.
-//
-// It is a Parser[T].
 func String[T ~string]() Parser[T] {
 	return func(s string) (T, error) {
 		return T(s), nil
@@ -229,8 +313,6 @@ func String[T ~string]() Parser[T] {
 }
 
 // Unsigned parses an unsigned number using strconv.ParseUint.
-//
-// It is a Parser[T].
 func Unsigned[T constraints.Unsigned]() Parser[T] {
 	return func(s string) (T, error) {
 		var v T
@@ -246,8 +328,6 @@ func Unsigned[T constraints.Unsigned]() Parser[T] {
 }
 
 // Signed parses a signed number using strconv.ParseInt.
-//
-// It is a Parser[T].
 func Signed[T constraints.Signed]() Parser[T] {
 	return func(s string) (T, error) {
 		var v T
@@ -263,8 +343,6 @@ func Signed[T constraints.Signed]() Parser[T] {
 }
 
 // Rune parses a single UTF-8 codepoint.
-//
-// It is a Parser[rune].
 func Rune() Parser[rune] {
 	return func(s string) (rune, error) {
 		r, size := utf8.DecodeRuneInString(s)
@@ -272,6 +350,18 @@ func Rune() Parser[rune] {
 			return 0, fmt.Errorf("expected single codepoint, got %q", s)
 		}
 		return r, nil
+	}
+}
+
+// Enum parses as any of opts.
+func Enum[T ~rune | ~string](opts ...T) Parser[T] {
+	return func(s string) (v T, err error) {
+		for _, o := range opts {
+			if string(o) == s {
+				return o, nil
+			}
+		}
+		return v, fmt.Errorf("expected one of %q", opts)
 	}
 }
 

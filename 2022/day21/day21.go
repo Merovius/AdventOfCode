@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/input"
 )
@@ -19,32 +18,21 @@ func main() {
 		log.SetFlags(log.Lshortfile)
 		logf = log.Printf
 	}
-	data, err := input.Slice(input.Lines(), func(s string) (Decl, error) {
-		name, expr, ok := strings.Cut(s, ": ")
-		if !ok {
-			return Decl{}, fmt.Errorf("invalid line %q", s)
-		}
-		v, err := strconv.Atoi(expr)
-		if err == nil {
-			return Decl{name, Const(v)}, nil
-		}
-		if len(expr) != 11 {
-			return Decl{}, fmt.Errorf("invalid line %q", s)
-		}
-		a1, a2 := Var(expr[:4]), Var(expr[7:])
-		switch expr[4:7] {
-		case " + ":
-			return Decl{name, Binary{OpAdd, a1, a2}}, nil
-		case " - ":
-			return Decl{name, Binary{OpSub, a1, a2}}, nil
-		case " * ":
-			return Decl{name, Binary{OpMul, a1, a2}}, nil
-		case " / ":
-			return Decl{name, Binary{OpDiv, a1, a2}}, nil
-		default:
-			return Decl{}, fmt.Errorf("invalid line %q", s)
-		}
-	}).Parse(os.Stdin)
+	data, err := input.Map(
+		input.Lines(),
+		input.Split(": "),
+		input.String[string](),
+		input.Any[Expr](
+			input.Signed[Const](),
+			input.Struct[Binary](
+				input.Fields(),
+				input.String[Var](),
+				input.Enum[Op]('+', '-', '*', '/'),
+				input.String[Var](),
+			),
+			input.String[Var](),
+		),
+	).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -109,37 +97,23 @@ func (v Var) String() string {
 	return string(v)
 }
 
-type Op int
+type Op rune
 
 const (
-	_ Op = iota
-	OpAdd
-	OpSub
-	OpMul
-	OpDiv
-	OpEq
+	OpAdd = '+'
+	OpSub = '-'
+	OpMul = '*'
+	OpDiv = '/'
+	OpEq  = '='
 )
 
 func (o Op) String() string {
-	switch o {
-	case OpAdd:
-		return "+"
-	case OpSub:
-		return "-"
-	case OpMul:
-		return "*"
-	case OpDiv:
-		return "/"
-	case OpEq:
-		return "="
-	default:
-		panic("invalid op")
-	}
+	return string(o)
 }
 
 type Binary struct {
-	Op   Op
 	Arg1 Expr
+	Op   Op
 	Arg2 Expr
 }
 
@@ -168,9 +142,9 @@ func (b Binary) Simpl(m map[string]Expr) (e Expr) {
 	c1, ok1 := a1.(Const)
 	c2, ok2 := a2.(Const)
 	if ok1 && ok2 && b.Op != OpEq {
-		return Const(Binary{b.Op, c1, c2}.Eval(m))
+		return Const(Binary{c1, b.Op, c2}.Eval(m))
 	}
-	return Binary{b.Op, a1, a2}
+	return Binary{a1, b.Op, a2}
 }
 
 func (b Binary) Solve(v int) (w int, err error) {
@@ -232,19 +206,11 @@ func (b Binary) String() string {
 	return fmt.Sprintf("(%v %v %v)", b.Arg1, b.Op, b.Arg2)
 }
 
-func Eval(d []Decl) int {
-	m := make(map[string]Expr)
-	for _, d := range d {
-		m[d.Name] = d.Expr
-	}
+func Eval(m map[string]Expr) int {
 	return m["root"].Eval(m)
 }
 
-func Solve(d []Decl) int {
-	m := make(map[string]Expr)
-	for _, d := range d {
-		m[d.Name] = d.Expr
-	}
+func Solve(m map[string]Expr) int {
 	e := m["root"].Simpl(m).(Binary)
 	e.Op = OpEq
 	v, err := e.Solve(1)
