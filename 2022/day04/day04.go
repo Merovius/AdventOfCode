@@ -2,13 +2,24 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
+
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"github.com/Merovius/AdventOfCode/internal/input/split"
 )
 
 func main() {
-	input, err := ReadInput(os.Stdin)
+	input, err := parse.Lines(
+		parse.Array[[2]Range](
+			split.On(","),
+			parse.Struct[Range](
+				split.On("-"),
+				parse.Signed[int],
+				parse.Signed[int],
+			),
+		),
+	).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -19,21 +30,6 @@ func main() {
 type Range struct {
 	Min int
 	Max int
-}
-
-func ReadInput(r io.Reader) ([][2]Range, error) {
-	var out [][2]Range
-	for {
-		var p [2]Range
-		i, err := fmt.Scanf("%d-%d,%d-%d\n", &p[0].Min, &p[0].Max, &p[1].Min, &p[1].Max)
-		if err == io.EOF {
-			return out, nil
-		}
-		if i != 4 || err != nil {
-			return nil, err
-		}
-		out = append(out, p)
-	}
 }
 
 func Contains(a, b Range) bool {
