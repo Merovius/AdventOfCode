@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Merovius/AdventOfCode/internal/input"
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/math"
 	"github.com/Merovius/AdventOfCode/internal/set"
 )
@@ -17,7 +17,7 @@ var _ = math.MaxInt
 func main() {
 	log.SetFlags(log.Lshortfile)
 
-	data, err := input.Slice(input.Lines(), func(s string) (Blueprint, error) {
+	data, err := parse.Lines(func(s string) (Blueprint, error) {
 		var (
 			b Blueprint
 			n int

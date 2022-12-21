@@ -5,13 +5,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/Merovius/AdventOfCode/internal/input"
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 )
 
 func main() {
-	c, err := input.Slice(input.Blocks(), input.Slice(input.Lines(), input.Signed[int]())).Parse(os.Stdin)
+	c, err := parse.Blocks(parse.Lines(parse.Signed[int])).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

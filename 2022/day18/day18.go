@@ -5,13 +5,14 @@ import (
 	"log"
 	"os"
 
-	"github.com/Merovius/AdventOfCode/internal/input"
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"github.com/Merovius/AdventOfCode/internal/math"
 	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
-	data, err := input.Slice(input.Lines(), input.Array[Node](input.Split(","), input.Signed[int]())).Parse(os.Stdin)
+	data, err := parse.Lines(parse.Array[Node](split.On(","), parse.Signed[int])).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

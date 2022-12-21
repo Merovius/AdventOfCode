@@ -5,18 +5,18 @@ import (
 	"log"
 	"os"
 
-	"github.com/Merovius/AdventOfCode/internal/input"
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"github.com/Merovius/AdventOfCode/internal/math"
 )
 
 func main() {
-	data, err := input.Slice(
-		input.Lines(),
-		input.Struct[Valve](
-			input.Regexp(`Valve ([A-Z]{2}) has flow rate=(\d+); tunnels? leads? to valves? (.*)`),
-			input.String[string](),
-			input.Signed[int](),
-			input.Slice(input.Split(", "), input.String[string]()),
+	data, err := parse.Lines(
+		parse.Struct[Valve](
+			split.Regexp(`Valve ([A-Z]{2}) has flow rate=(\d+); tunnels? leads? to valves? (.*)`),
+			parse.String[string],
+			parse.Signed[int],
+			parse.Slice(split.On(", "), parse.String[string]),
 		),
 	).Parse(os.Stdin)
 	if err != nil {

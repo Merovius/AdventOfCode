@@ -1,15 +1,15 @@
-package input
+package parse
 
 import (
 	"bytes"
 	"fmt"
 	"io"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 
+	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"golang.org/x/exp/constraints"
 )
 
@@ -25,18 +25,18 @@ func (p Parser[T]) Parse(r io.Reader) (T, error) {
 	return p(string(bytes.TrimSpace(buf)))
 }
 
-// Array splits a string using split and calls p for each piece. A must be an
-// array type with element type T.
-func Array[A, T any](split Splitter, p Parser[T]) Parser[A] {
+// Array splits a string and calls p for each piece. A must be an array type
+// with element type T.
+func Array[A, T any](s split.Func, p Parser[T]) Parser[A] {
 	tt := reflect.TypeOf(new(T)).Elem()
 	at := reflect.TypeOf(new(A)).Elem()
 	if at.Kind() != reflect.Array || at.Elem() != tt {
 		panic(fmt.Errorf("%v is not an […]%v array type", at, tt))
 	}
 	n := at.Len()
-	return func(s string) (A, error) {
+	return func(in string) (A, error) {
 		var a A
-		sp, err := split(s)
+		sp, err := s(in)
 		if err != nil {
 			return a, err
 		}
@@ -57,8 +57,8 @@ func Array[A, T any](split Splitter, p Parser[T]) Parser[A] {
 
 // MapParser converts a Parser[A] into a Parser[B] using f.
 func MapParser[A, B any](p Parser[A], f func(A) (B, error)) Parser[B] {
-	return func(s string) (B, error) {
-		a, err := p(s)
+	return func(in string) (B, error) {
+		a, err := p(in)
 		if err != nil {
 			return *new(B), err
 		}
@@ -66,11 +66,11 @@ func MapParser[A, B any](p Parser[A], f func(A) (B, error)) Parser[B] {
 	}
 }
 
-// Slice splits a string using split and calls p on each piece.
-func Slice[T any](split Splitter, p Parser[T]) Parser[[]T] {
-	return func(s string) ([]T, error) {
+// Slice splits a string and calls p on each piece.
+func Slice[T any](s split.Func, p Parser[T]) Parser[[]T] {
+	return func(in string) ([]T, error) {
 		var out []T
-		sp, err := split(s)
+		sp, err := s(in)
 		if err != nil {
 			return nil, err
 		}
@@ -85,14 +85,29 @@ func Slice[T any](split Splitter, p Parser[T]) Parser[[]T] {
 	}
 }
 
+// Fields is a shorthand for Slice(split.Fields, …).
+func Fields[T any](p Parser[T]) Parser[[]T] {
+	return Slice(split.Fields, p)
+}
+
+// Lines is a shorthand for Slice(split.Lines, …).
+func Lines[T any](p Parser[T]) Parser[[]T] {
+	return Slice(split.Lines, p)
+}
+
+// Blocks is a shorthand for Slice(split.Blocks, …).
+func Blocks[T any](p Parser[T]) Parser[[]T] {
+	return Slice(split.Blocks, p)
+}
+
 // Map parses a map. It uses split to separate the input into key/value pairs
 // and then uses cut to cut them up into a key and a value, which are parsed
 // using k and v respectively.
 //
 // It errors if a key is duplicated.
-func Map[K comparable, V any](split, cut Splitter, k Parser[K], v Parser[V]) Parser[map[K]V] {
-	return func(s string) (map[K]V, error) {
-		sp, err := split(s)
+func Map[K comparable, V any](split, cut split.Func, k Parser[K], v Parser[V]) Parser[map[K]V] {
+	return func(in string) (map[K]V, error) {
+		sp, err := split(in)
 		if err != nil {
 			return nil, err
 		}
@@ -111,7 +126,7 @@ func Map[K comparable, V any](split, cut Splitter, k Parser[K], v Parser[V]) Par
 				return nil, err
 			}
 			if _, ok := m[kk]; ok {
-				return nil, fmt.Errorf("duplicate key %q", kk)
+				return nil, fmt.Errorf("duplicate key %q", sp[0])
 			}
 			m[kk] = vv
 		}
@@ -142,7 +157,7 @@ func isParser(t reflect.Type) reflect.Type {
 // The parsers don't have to return the same type, but they must return
 // something assignable to T.
 func Any[T any](p ...any) Parser[T] {
-	rp := make([]func(s string, rv reflect.Value) error, len(p))
+	rp := make([]func(string, reflect.Value) error, len(p))
 	tt := reflect.TypeOf(new(T)).Elem()
 	for i, p := range p {
 		rf := reflect.ValueOf(p)
@@ -162,24 +177,24 @@ func Any[T any](p ...any) Parser[T] {
 			return nil
 		}
 	}
-	return func(s string) (v T, err error) {
+	return func(in string) (v T, err error) {
 		rv := reflect.ValueOf(&v).Elem()
 		for _, p := range rp {
-			if err := p(s, rv); err == nil {
+			if err := p(in, rv); err == nil {
 				return v, err
 			}
 		}
-		return v, fmt.Errorf("can not parse %q as %T", s, v)
+		return v, fmt.Errorf("can not parse %q as %T", in, v)
 	}
 }
 
-// Struct splits a string using split and parses the result into the fields of
-// a struct using the given parsers.
+// Struct splits a string and parses the result into the fields of a struct
+// using the given parsers.
 //
 // S must be a struct type with the same number of exported fields as split
 // returns. The variadic fields argument must all be of type Parser[T] and T
 // must match the exported field of S in the same sequence.
-func Struct[S any](split Splitter, fields ...any) Parser[S] {
+func Struct[S any](s split.Func, fields ...any) Parser[S] {
 	type field struct {
 		idx int
 		p   func(string, reflect.Value) error
@@ -205,8 +220,8 @@ func Struct[S any](split Splitter, fields ...any) Parser[S] {
 			panic(fmt.Errorf("%v is not assignable to type %v of field %v.%s", tt, rf.Type, rt, rf.Name))
 		}
 
-		rp := func(s string, rv reflect.Value) error {
-			out := p.Call([]reflect.Value{reflect.ValueOf(s)})
+		rp := func(in string, rv reflect.Value) error {
+			out := p.Call([]reflect.Value{reflect.ValueOf(in)})
 			rv.Set(out[0])
 			if e := out[1].Interface(); e != nil {
 				return e.(error)
@@ -218,9 +233,9 @@ func Struct[S any](split Splitter, fields ...any) Parser[S] {
 			p:   rp,
 		})
 	}
-	return func(s string) (S, error) {
+	return func(in string) (S, error) {
 		var v S
-		sp, err := split(s)
+		sp, err := s(in)
 		if err != nil {
 			return v, err
 		}
@@ -237,7 +252,7 @@ func Struct[S any](split Splitter, fields ...any) Parser[S] {
 	}
 }
 
-func refl(rt reflect.Type) func(s string, p reflect.Value) error {
+func refl(rt reflect.Type) func(in string, p reflect.Value) error {
 	var (
 		indir    int
 		isParser bool
@@ -253,7 +268,7 @@ func refl(rt reflect.Type) func(s string, p reflect.Value) error {
 			isParser, ptr = true, true
 		}
 	}
-	return func(s string, rv reflect.Value) error {
+	return func(in string, rv reflect.Value) error {
 		for i := 0; i < indir; i++ {
 			rv.Set(reflect.New(rv.Type().Elem()))
 			rv = rv.Elem()
@@ -265,31 +280,31 @@ func refl(rt reflect.Type) func(s string, p reflect.Value) error {
 			} else {
 				p = rv.Interface().(parseIface)
 			}
-			if err := p.Parse(s); err != nil {
-				return fmt.Errorf("parsing %q: %w", s, err)
+			if err := p.Parse(in); err != nil {
+				return fmt.Errorf("parsing %q: %w", in, err)
 			}
 			return nil
 		}
 		switch rt.Kind() {
 		case reflect.Bool:
-			switch strings.ToLower(s) {
+			switch strings.ToLower(in) {
 			case "true":
 				rv.SetBool(true)
 			case "false":
 				rv.SetBool(false)
 			default:
-				return fmt.Errorf("can not parse %q as %v", s, rt)
+				return fmt.Errorf("can not parse %q as %v", in, rt)
 			}
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			n, err := strconv.ParseInt(s, 0, 64)
+			n, err := strconv.ParseInt(in, 0, 64)
 			if err != nil {
-				return fmt.Errorf("can not parse %q as %v", s, rt)
+				return fmt.Errorf("can not parse %q as %v", in, rt)
 			}
 			rv.SetInt(n)
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-			n, err := strconv.ParseUint(s, 0, 64)
+			n, err := strconv.ParseUint(in, 0, 64)
 			if err != nil {
-				return fmt.Errorf("can not parse %q as %v", s, rt)
+				return fmt.Errorf("can not parse %q as %v", in, rt)
 			}
 			rv.SetUint(n)
 		default:
@@ -306,116 +321,53 @@ type parseIface interface {
 var parseT = reflect.TypeOf(new(parseIface)).Elem()
 
 // String parses any string as itself.
-func String[T ~string]() Parser[T] {
-	return func(s string) (T, error) {
-		return T(s), nil
-	}
+func String[T ~string](in string) (T, error) {
+	return T(in), nil
 }
 
 // Unsigned parses an unsigned number using strconv.ParseUint.
-func Unsigned[T constraints.Unsigned]() Parser[T] {
-	return func(s string) (T, error) {
-		var v T
-		n, err := strconv.ParseUint(s, 0, 64)
-		if err != nil {
-			return v, fmt.Errorf("parsing %q as %T: %w", s, v, err)
-		}
-		if uint64(T(n)) != n {
-			return v, fmt.Errorf("%v overflows %T", n, v)
-		}
-		return T(n), nil
+func Unsigned[T constraints.Unsigned](in string) (T, error) {
+	var v T
+	n, err := strconv.ParseUint(in, 0, 64)
+	if err != nil {
+		return v, fmt.Errorf("parsing %q as %T: %w", in, v, err)
 	}
+	if uint64(T(n)) != n {
+		return v, fmt.Errorf("%v overflows %T", n, v)
+	}
+	return T(n), nil
 }
 
 // Signed parses a signed number using strconv.ParseInt.
-func Signed[T constraints.Signed]() Parser[T] {
-	return func(s string) (T, error) {
-		var v T
-		n, err := strconv.ParseInt(s, 0, 64)
-		if err != nil {
-			return v, fmt.Errorf("parsing %q as %T: %w", s, v, err)
-		}
-		if int64(T(n)) != n {
-			return v, fmt.Errorf("%v overflows %T", n, v)
-		}
-		return T(n), nil
+func Signed[T constraints.Signed](in string) (T, error) {
+	var v T
+	n, err := strconv.ParseInt(in, 0, 64)
+	if err != nil {
+		return v, fmt.Errorf("parsing %q as %T: %w", in, v, err)
 	}
+	if int64(T(n)) != n {
+		return v, fmt.Errorf("%v overflows %T", n, v)
+	}
+	return T(n), nil
 }
 
 // Rune parses a single UTF-8 codepoint.
-func Rune() Parser[rune] {
-	return func(s string) (rune, error) {
-		r, size := utf8.DecodeRuneInString(s)
-		if size != len(s) || r == utf8.RuneError {
-			return 0, fmt.Errorf("expected single codepoint, got %q", s)
-		}
-		return r, nil
+func Rune(in string) (rune, error) {
+	r, size := utf8.DecodeRuneInString(in)
+	if size != len(in) || r == utf8.RuneError {
+		return 0, fmt.Errorf("expected single codepoint, got %q", in)
 	}
+	return r, nil
 }
 
 // Enum parses as any of opts.
 func Enum[T ~rune | ~string](opts ...T) Parser[T] {
-	return func(s string) (v T, err error) {
+	return func(in string) (v T, err error) {
 		for _, o := range opts {
-			if string(o) == s {
+			if string(o) == in {
 				return o, nil
 			}
 		}
 		return v, fmt.Errorf("expected one of %q", opts)
-	}
-}
-
-type Splitter func(string) ([]string, error)
-
-// Split into blocks, separated by empty lines.
-func Blocks() Splitter {
-	return Split("\n\n")
-}
-
-// Split into whitespace-separated fields.
-func Fields() Splitter {
-	return func(s string) ([]string, error) {
-		return strings.Fields(s), nil
-	}
-}
-
-// Split into lines.
-func Lines() Splitter {
-	return Split("\n")
-}
-
-// Split along sep.
-func Split(sep string) Splitter {
-	return func(s string) ([]string, error) {
-		return strings.Split(s, sep), nil
-	}
-}
-
-// Split into at most n pieces, along sep.
-func SplitN(sep string, n int) Splitter {
-	return func(s string) ([]string, error) {
-		return strings.SplitN(s, sep, n), nil
-	}
-}
-
-// Split into capture groups of a regular expression. The regular expression
-// must match the full parsed string.
-func Regexp(re string) Splitter {
-	if !strings.HasPrefix(re, "^") {
-		re = "^" + re
-	}
-	if !strings.HasSuffix(re, "$") {
-		re += "$"
-	}
-	r, err := regexp.Compile(re)
-	if err != nil {
-		panic(fmt.Errorf("regexp.Compile(%q) = %v", re, err))
-	}
-	return func(s string) ([]string, error) {
-		sp := r.FindStringSubmatch(s)
-		if sp == nil || len(sp[0]) != len(s) {
-			return nil, fmt.Errorf("%q does not match %q", s, re)
-		}
-		return sp[1:], nil
 	}
 }

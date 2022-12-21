@@ -5,19 +5,28 @@ import (
 	"log"
 	"os"
 
-	"github.com/Merovius/AdventOfCode/internal/input"
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"github.com/Merovius/AdventOfCode/internal/input/split"
 )
 
 func main() {
-	data, err := input.Slice(input.Lines(), input.Array[[2]int](input.Fields(), input.MapParser(input.Rune(), func(r rune) (int, error) {
-		if r >= 'A' && r <= 'C' {
-			return int(r - 'A'), nil
-		}
-		if r >= 'X' && r <= 'Z' {
-			return int(r - 'X'), nil
-		}
-		return 0, fmt.Errorf("invalid character %q", r)
-	}))).Parse(os.Stdin)
+	data, err := parse.Lines(
+		parse.Array[[2]int](
+			split.Fields,
+			parse.MapParser(
+				parse.Rune,
+				func(r rune) (int, error) {
+					if r >= 'A' && r <= 'C' {
+						return int(r - 'A'), nil
+					}
+					if r >= 'X' && r <= 'Z' {
+						return int(r - 'X'), nil
+					}
+					return 0, fmt.Errorf("invalid character %q", r)
+				},
+			),
+		),
+	).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

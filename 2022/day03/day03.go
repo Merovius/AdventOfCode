@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Merovius/AdventOfCode/internal/input"
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
-	contents, err := input.Slice(input.Lines(), input.String[string]()).Parse(os.Stdin)
+	contents, err := parse.Lines(parse.String[string]).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

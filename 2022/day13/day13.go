@@ -9,13 +9,14 @@ import (
 	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/container"
-	"github.com/Merovius/AdventOfCode/internal/input"
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"github.com/Merovius/AdventOfCode/internal/math"
 	"golang.org/x/exp/slices"
 )
 
 func main() {
-	data, err := input.Slice(input.Blocks(), input.Array[[2]Tree](input.Lines(), ParseTree)).Parse(os.Stdin)
+	data, err := parse.Blocks(parse.Array[[2]Tree](split.Lines, ParseTree)).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

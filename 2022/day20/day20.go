@@ -6,12 +6,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Merovius/AdventOfCode/internal/input"
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
 )
 
 func main() {
 	log.SetFlags(log.Lshortfile)
-	data, err := input.Slice(input.Lines(), input.Signed[int]()).Parse(os.Stdin)
+	data, err := parse.Lines(parse.Signed[int]).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

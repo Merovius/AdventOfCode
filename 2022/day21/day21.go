@@ -8,7 +8,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/Merovius/AdventOfCode/internal/input"
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"github.com/Merovius/AdventOfCode/internal/input/split"
 )
 
 func main() {
@@ -18,19 +19,19 @@ func main() {
 		log.SetFlags(log.Lshortfile)
 		logf = log.Printf
 	}
-	data, err := input.Map(
-		input.Lines(),
-		input.Split(": "),
-		input.String[string](),
-		input.Any[Expr](
-			input.Signed[Const](),
-			input.Struct[Binary](
-				input.Fields(),
-				input.String[Var](),
-				input.Enum[Op]('+', '-', '*', '/'),
-				input.String[Var](),
+	data, err := parse.Map(
+		split.Lines,
+		split.On(": "),
+		parse.String[string],
+		parse.Any[Expr](
+			parse.Signed[Const],
+			parse.Struct[Binary](
+				split.Fields,
+				parse.String[Var],
+				parse.Enum(OpAdd, OpSub, OpMul, OpDiv),
+				parse.String[Var],
 			),
-			input.String[Var](),
+			parse.String[Var],
 		),
 	).Parse(os.Stdin)
 	if err != nil {
@@ -100,11 +101,11 @@ func (v Var) String() string {
 type Op rune
 
 const (
-	OpAdd = '+'
-	OpSub = '-'
-	OpMul = '*'
-	OpDiv = '/'
-	OpEq  = '='
+	OpAdd Op = '+'
+	OpSub Op = '-'
+	OpMul Op = '*'
+	OpDiv Op = '/'
+	OpEq  Op = '='
 )
 
 func (o Op) String() string {

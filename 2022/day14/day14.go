@@ -10,7 +10,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Merovius/AdventOfCode/internal/input"
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"github.com/Merovius/AdventOfCode/internal/math"
 	"golang.org/x/exp/slices"
 )
@@ -27,8 +28,15 @@ func main() {
 		anim1 = filepath.Join(*animate, "part1_%.5d.png")
 		anim2 = filepath.Join(*animate, "part2_%.5d.png")
 	}
-
-	data, err := input.Slice(input.Lines(), input.Slice(input.Split(" -> "), input.Array[[2]int](input.Split(","), input.Signed[int]()))).Parse(os.Stdin)
+	data, err := parse.Lines(
+		parse.Slice(
+			split.On(" -> "),
+			parse.Array[[2]int](
+				split.On(","),
+				parse.Signed[int],
+			),
+		),
+	).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

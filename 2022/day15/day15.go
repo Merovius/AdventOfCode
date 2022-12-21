@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Merovius/AdventOfCode/internal/input"
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/interval"
 	"github.com/Merovius/AdventOfCode/internal/math"
 )
@@ -15,11 +15,11 @@ func main() {
 	example := flag.Bool("example", false, "input is example data")
 	flag.Parse()
 
-	data, err := input.Slice(input.Lines(), func(s string) (Scanner, error) {
+	data, err := parse.Lines(func(in string) (Scanner, error) {
 		var sc Scanner
-		i, err := fmt.Sscanf(s, "Sensor at x=%d, y=%d: closest beacon is at x=%d, y=%d", &sc.Pos.X, &sc.Pos.Y, &sc.Beacon.X, &sc.Beacon.Y)
+		i, err := fmt.Sscanf(in, "Sensor at x=%d, y=%d: closest beacon is at x=%d, y=%d", &sc.Pos.X, &sc.Pos.Y, &sc.Beacon.X, &sc.Beacon.Y)
 		if err != nil || i != 4 {
-			return sc, fmt.Errorf("invalid line %q", s)
+			return sc, fmt.Errorf("invalid line %q", in)
 		}
 		sc.R = sc.Pos.Dist(sc.Beacon)
 		return sc, nil
