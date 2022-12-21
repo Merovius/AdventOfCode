@@ -1,46 +1,29 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"github.com/Merovius/AdventOfCode/internal/input/split"
 	. "github.com/Merovius/AdventOfCode/internal/math"
 	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
-	moves, err := ReadInput(os.Stdin)
+	moves, err := parse.Lines(
+		parse.Struct[Move](
+			split.Fields,
+			parse.Enum(Up, Down, Left, Right),
+			parse.Signed[int],
+		),
+	).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("With 2 pieces, the tail visited %d positions\n", Simulate(moves, 2))
 	fmt.Printf("With 10 pieces, the tail visited %d positions\n", Simulate(moves, 10))
-}
-
-func ReadInput(r io.Reader) ([]Move, error) {
-	var out []Move
-	s := bufio.NewScanner(r)
-	for s.Scan() {
-		l := s.Text()
-		first, second, ok := strings.Cut(l, " ")
-		if !ok {
-			return nil, fmt.Errorf("invalid line %q", l)
-		}
-		n, err := strconv.Atoi(second)
-		if err != nil || n < 0 {
-			return nil, fmt.Errorf("invalid line %q", l)
-		}
-		if len(first) != 1 || strings.IndexByte("UDLR", first[0]) < 0 {
-			return nil, fmt.Errorf("invalid line %q", l)
-		}
-		out = append(out, Move{Direction(first[0]), n})
-	}
-	return out, s.Err()
 }
 
 type Direction byte

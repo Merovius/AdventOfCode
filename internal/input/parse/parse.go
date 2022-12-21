@@ -361,7 +361,7 @@ func Rune(in string) (rune, error) {
 }
 
 // Enum parses as any of opts.
-func Enum[T ~rune | ~string](opts ...T) Parser[T] {
+func Enum[T ~byte | ~rune | ~string](opts ...T) Parser[T] {
 	return func(in string) (v T, err error) {
 		for _, o := range opts {
 			if string(o) == in {
