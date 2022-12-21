@@ -19,7 +19,7 @@ func main() {
 		log.SetFlags(log.Lshortfile)
 		logf = log.Printf
 	}
-	data, err := input.Lines(func(s string) (Decl, error) {
+	data, err := input.Slice(input.Lines(), func(s string) (Decl, error) {
 		name, expr, ok := strings.Cut(s, ": ")
 		if !ok {
 			return Decl{}, fmt.Errorf("invalid line %q", s)

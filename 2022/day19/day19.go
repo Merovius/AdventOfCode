@@ -17,7 +17,7 @@ var _ = math.MaxInt
 func main() {
 	log.SetFlags(log.Lshortfile)
 
-	data, err := input.Lines(func(s string) (Blueprint, error) {
+	data, err := input.Slice(input.Lines(), func(s string) (Blueprint, error) {
 		var (
 			b Blueprint
 			n int

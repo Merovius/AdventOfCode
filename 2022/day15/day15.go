@@ -15,7 +15,7 @@ func main() {
 	example := flag.Bool("example", false, "input is example data")
 	flag.Parse()
 
-	data, err := input.Lines(func(s string) (Scanner, error) {
+	data, err := input.Slice(input.Lines(), func(s string) (Scanner, error) {
 		var sc Scanner
 		i, err := fmt.Sscanf(s, "Sensor at x=%d, y=%d: closest beacon is at x=%d, y=%d", &sc.Pos.X, &sc.Pos.Y, &sc.Beacon.X, &sc.Beacon.Y)
 		if err != nil || i != 4 {

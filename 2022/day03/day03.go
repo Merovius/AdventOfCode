@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	contents, err := input.Lines(input.String).Parse(os.Stdin)
+	contents, err := input.Slice(input.Lines(), input.String[string]()).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

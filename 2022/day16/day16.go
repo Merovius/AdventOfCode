@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	data, err := input.Lines(func(s string) (Valve, error) {
+	data, err := input.Slice(input.Lines(), func(s string) (Valve, error) {
 		var v Valve
 		before, after, ok := strings.Cut(s, "; ")
 		if !ok {

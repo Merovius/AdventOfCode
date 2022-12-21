@@ -11,7 +11,7 @@ import (
 
 func main() {
 	log.SetFlags(log.Lshortfile)
-	data, err := input.Lines(input.Signed[int]).Parse(os.Stdin)
+	data, err := input.Slice(input.Lines(), input.Signed[int]()).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

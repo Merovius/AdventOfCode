@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	data, err := input.Blocks(input.Array[[2]Tree](input.SplitLines, ParseTree)).Parse(os.Stdin)
+	data, err := input.Slice(input.Blocks(), input.Array[[2]Tree](input.Lines(), ParseTree)).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

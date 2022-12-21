@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/input"
 	"github.com/Merovius/AdventOfCode/internal/math"
@@ -29,10 +28,7 @@ func main() {
 		anim2 = filepath.Join(*animate, "part2_%.5d.png")
 	}
 
-	split := func(s string) []string {
-		return strings.Split(s, ",")
-	}
-	data, err := input.Lines(input.Split(" -> ", input.Array[[2]int](split, input.Signed[int]))).Parse(os.Stdin)
+	data, err := input.Slice(input.Lines(), input.Slice(input.Split(" -> "), input.Array[[2]int](input.Split(","), input.Signed[int]()))).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	c, err := input.Blocks(input.Lines(input.Signed[int])).Parse(os.Stdin)
+	c, err := input.Slice(input.Blocks(), input.Slice(input.Lines(), input.Signed[int]())).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

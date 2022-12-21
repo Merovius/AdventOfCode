@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/input"
 )
 
 func main() {
-	data, err := input.Lines(input.Array[[2]int](strings.Fields, input.Map(input.Rune, func(r rune) (int, error) {
+	data, err := input.Slice(input.Lines(), input.Array[[2]int](input.Fields(), input.MapParser(input.Rune(), func(r rune) (int, error) {
 		if r >= 'A' && r <= 'C' {
 			return int(r - 'A'), nil
 		}
