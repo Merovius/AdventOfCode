@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -121,7 +122,10 @@ func Struct[S any](split Splitter, fields ...any) Parser[S] {
 		rp := func(s string, rv reflect.Value) error {
 			out := p.Call([]reflect.Value{reflect.ValueOf(s)})
 			rv.Set(out[0])
-			return out[1].Interface().(error)
+			if e := out[1].Interface(); e != nil {
+				return e.(error)
+			}
+			return nil
 		}
 		fs = append(fs, field{
 			idx: i,
@@ -134,7 +138,7 @@ func Struct[S any](split Splitter, fields ...any) Parser[S] {
 		if err != nil {
 			return v, err
 		}
-		if len(sp) != len(fields) {
+		if len(sp) != len(fs) {
 			return v, fmt.Errorf("got %d strings for %d fields", len(sp), len(fields))
 		}
 		rv := reflect.ValueOf(&v).Elem()
@@ -301,5 +305,27 @@ func Split(sep string) Splitter {
 func SplitN(sep string, n int) Splitter {
 	return func(s string) ([]string, error) {
 		return strings.SplitN(s, sep, n), nil
+	}
+}
+
+// Split into capture groups of a regular expression. The regular expression
+// must match the full parsed string.
+func Regexp(re string) Splitter {
+	if !strings.HasPrefix(re, "^") {
+		re = "^" + re
+	}
+	if !strings.HasSuffix(re, "$") {
+		re += "$"
+	}
+	r, err := regexp.Compile(re)
+	if err != nil {
+		panic(fmt.Errorf("regexp.Compile(%q) = %v", re, err))
+	}
+	return func(s string) ([]string, error) {
+		sp := r.FindStringSubmatch(s)
+		if sp == nil || len(sp[0]) != len(s) {
+			return nil, fmt.Errorf("%q does not match %q", s, re)
+		}
+		return sp[1:], nil
 	}
 }

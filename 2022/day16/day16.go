@@ -4,33 +4,21 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/input"
 	"github.com/Merovius/AdventOfCode/internal/math"
 )
 
 func main() {
-	data, err := input.Slice(input.Lines(), func(s string) (Valve, error) {
-		var v Valve
-		before, after, ok := strings.Cut(s, "; ")
-		if !ok {
-			return Valve{}, fmt.Errorf("invalid line %q: no ;", s)
-		}
-		n, err := fmt.Sscanf(before, "Valve %s has flow rate=%d", &v.Name, &v.FlowRate)
-		if err != nil || n != 2 {
-			return Valve{}, fmt.Errorf("invalid line %q: can'd read name/flow rate", s)
-		}
-		after, ok = strings.CutPrefix(after, "tunnels lead to valves ")
-		if !ok {
-			after, ok = strings.CutPrefix(after, "tunnel leads to valve ")
-			if !ok {
-				return Valve{}, fmt.Errorf("invalid line %q: no tunnels", s)
-			}
-		}
-		v.Tunnels = strings.Split(after, ", ")
-		return v, nil
-	}).Parse(os.Stdin)
+	data, err := input.Slice(
+		input.Lines(),
+		input.Struct[Valve](
+			input.Regexp(`Valve ([A-Z]{2}) has flow rate=(\d+); tunnels? leads? to valves? (.*)`),
+			input.String[string](),
+			input.Signed[int](),
+			input.Slice(input.Split(", "), input.String[string]()),
+		),
+	).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
