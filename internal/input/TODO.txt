@@ -1,0 +1,1 @@
+• Optional struct fields (see 2022/day10)

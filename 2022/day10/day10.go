@@ -1,19 +1,28 @@
 package main
 
 import (
-	"bufio"
+	"errors"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"github.com/Merovius/AdventOfCode/internal/math"
 )
 
 func main() {
-	prog, err := ReadInput(os.Stdin)
+	prog, err := parse.Lines(
+		parse.Any[Inst](
+			func(s string) (Inst, error) {
+				if s == "noop" {
+					return Inst{Op: "noop"}, nil
+				}
+				return Inst{}, errors.New(`expected "noop"`)
+			},
+			parse.Struct[Inst](split.Fields, parse.Enum("addx"), parse.Signed[int]),
+		),
+	).Parse(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,28 +37,6 @@ func main() {
 type Inst struct {
 	Op  string
 	Arg int
-}
-
-func ReadInput(r io.Reader) ([]Inst, error) {
-	var out []Inst
-	s := bufio.NewScanner(r)
-	for s.Scan() {
-		l := strings.TrimSpace(s.Text())
-		op, argS, ok := strings.Cut(l, " ")
-		var arg int
-		if ok {
-			var err error
-			arg, err = strconv.Atoi(argS)
-			if err != nil {
-				return nil, err
-			}
-		}
-		if op != "noop" && op != "addx" {
-			return nil, fmt.Errorf("invalid instruction %q", op)
-		}
-		out = append(out, Inst{op, arg})
-	}
-	return out, nil
 }
 
 func Run(prog []Inst) (int, []string) {
