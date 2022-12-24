@@ -8,6 +8,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/Merovius/AdventOfCode/internal/math"
 	"golang.org/x/exp/slices"
 )
 
@@ -23,8 +24,23 @@ func (p Pos) Add(δ Pos) Pos {
 	}
 }
 
+func (p Pos) Sub(δ Pos) Pos {
+	return Pos{
+		Row: p.Row - δ.Row,
+		Col: p.Col - δ.Col,
+	}
+}
+
+func (p Pos) Length() int {
+	return math.Abs(p.Row) + math.Abs(p.Col)
+}
+
+func (p Pos) Dist(q Pos) int {
+	return p.Sub(q).Length()
+}
+
 func (p Pos) String() string {
-	return fmt.Sprintf("(%d,%d)", p.Row+1, p.Col+1)
+	return fmt.Sprintf("(%d,%d)", p.Row, p.Col)
 }
 
 type Grid[T any] struct {
