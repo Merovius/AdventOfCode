@@ -141,6 +141,7 @@ func (cmd *boardCmd) printBoard(b *aoc.Leaderboard) error {
 	var (
 		scorePad    int
 		possiblePad int
+		maxPad      int
 	)
 	for i := range lines {
 		l := &lines[i]
@@ -154,6 +155,7 @@ func (cmd *boardCmd) printBoard(b *aoc.Leaderboard) error {
 		}
 		scorePad = math.Max(scorePad, len(strconv.Itoa(l.score)))
 		possiblePad = math.Max(possiblePad, len(strconv.Itoa(l.possible)))
+		maxPad = math.Max(maxPad, len(strconv.Itoa(l.score+l.possible)))
 	}
 
 	fmt.Printf("%*s          1111111111222222\n", nameMax, "")
@@ -170,7 +172,7 @@ func (cmd *boardCmd) printBoard(b *aoc.Leaderboard) error {
 				fmt.Print("\033[33m★\033[0m")
 			}
 		}
-		fmt.Printf(" %*d (%*d more achievable)\n", scorePad, l.score, possiblePad, l.possible)
+		fmt.Printf(" %*d (%*d open for a maximum of %*d)\n", scorePad, l.score, possiblePad, l.possible, maxPad, l.score+l.possible)
 	}
 	return nil
 }
