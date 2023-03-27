@@ -2,7 +2,6 @@ package interval
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/math"
@@ -70,7 +69,7 @@ type set[T constraints.Signed] struct {
 
 // Contains returns whether s contains v.
 func (s *set[T]) Contains(v T) bool {
-	n, ok := search(s.s, v, func(i CO[T], v T) int {
+	n, ok := slices.BinarySearchFunc(s.s, v, func(i CO[T], v T) int {
 		return math.Cmp(i.Min, v)
 	})
 	if ok {
@@ -97,7 +96,7 @@ func (s *set[T]) Add(i CO[T]) {
 		return
 	}
 
-	lo, lok := search(s.s, i.Min, func(j CO[T], v T) int {
+	lo, lok := slices.BinarySearchFunc(s.s, i.Min, func(j CO[T], v T) int {
 		if v > j.Max {
 			return -1
 		}
@@ -106,7 +105,7 @@ func (s *set[T]) Add(i CO[T]) {
 		}
 		return 0
 	})
-	hi, hok := search(s.s, i.Max, func(j CO[T], v T) int {
+	hi, hok := slices.BinarySearchFunc(s.s, i.Max, func(j CO[T], v T) int {
 		if v > j.Max {
 			return -1
 		}
@@ -135,7 +134,7 @@ func (s *set[T]) Add(i CO[T]) {
 
 // Intersect intersects i into s.
 func (s *set[T]) Intersect(i CO[T]) {
-	lo, lok := search(s.s, i.Min, func(j CO[T], v T) int {
+	lo, lok := slices.BinarySearchFunc(s.s, i.Min, func(j CO[T], v T) int {
 		if v >= j.Max {
 			return -1
 		}
@@ -151,7 +150,7 @@ func (s *set[T]) Intersect(i CO[T]) {
 		}
 	}
 	s.s = s.s[lo:]
-	hi, hok := search(s.s, i.Max, func(j CO[T], v T) int {
+	hi, hok := slices.BinarySearchFunc(s.s, i.Max, func(j CO[T], v T) int {
 		if v >= j.Max {
 			return -1
 		}
@@ -197,14 +196,4 @@ func (s *set[T]) check() {
 		}
 		i = j
 	}
-}
-
-func search[A, B any](x []A, target B, cmp func(A, B) int) (int, bool) {
-	pos := sort.Search(len(x), func(i int) bool {
-		return cmp(x[i], target) >= 0
-	})
-	if pos >= len(x) || cmp(x[pos], target) != 0 {
-		return pos, false
-	}
-	return pos, true
 }
