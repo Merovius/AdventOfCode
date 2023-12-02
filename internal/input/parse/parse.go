@@ -207,17 +207,17 @@ func Struct[S any](s split.Func, fields ...any) Parser[S] {
 			continue
 		}
 		if len(fields) == 0 {
-			panic(fmt.Errorf("too few parsers for number of exported fields of type %v", rt))
+			panic(fmt.Errorf("Struct[%T]: too few parsers for number of exported fields of type %v", *new(S), rt))
 		}
 		p := reflect.ValueOf(fields[0])
 		fields = fields[1:]
 		pt := p.Type()
 		tt := isParser(pt)
 		if tt == nil {
-			panic(fmt.Errorf("%v is not a Parser[T]", pt))
+			panic(fmt.Errorf("Struct[%T]: %v is not a Parser[T]", *new(S), pt))
 		}
 		if !tt.AssignableTo(rf.Type) {
-			panic(fmt.Errorf("%v is not assignable to type %v of field %v.%s", tt, rf.Type, rt, rf.Name))
+			panic(fmt.Errorf("Struct[%T]: %v is not assignable to type %v of field %v.%s", *new(S), tt, rf.Type, rt, rf.Name))
 		}
 
 		rp := func(in string, rv reflect.Value) error {
@@ -240,7 +240,7 @@ func Struct[S any](s split.Func, fields ...any) Parser[S] {
 			return v, err
 		}
 		if len(sp) != len(fs) {
-			return v, fmt.Errorf("got %d strings for %d fields", len(sp), len(fields))
+			return v, fmt.Errorf("Struct[%T]: got %d strings for %d fields", *new(S), len(sp), len(fs))
 		}
 		rv := reflect.ValueOf(&v).Elem()
 		for i, f := range fs {
