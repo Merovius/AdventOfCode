@@ -90,6 +90,10 @@ func New[T any](w, h int) *Grid[T] {
 	}
 }
 
+func (g *Grid[T]) Bounds() Rectangle {
+	return Rect(0, 0, g.H, g.W)
+}
+
 func (g *Grid[T]) At(p Pos) T {
 	return g.G[g.W*p.Row+p.Col]
 }
@@ -127,5 +131,103 @@ func (g *Grid[T]) Neigh4(p Pos) []Pos {
 		out = append(out, n)
 	}
 	return out
+}
 
+type Rectangle struct {
+	Min Pos
+	Max Pos
+}
+
+func Rect(rmin, cmin, rmax, cmax int) Rectangle {
+	return Rectangle{Pos{rmin, cmin}, Pos{rmax, cmax}}.Canon()
+}
+
+func (r Rectangle) Add(p Pos) Rectangle {
+	r.Min = r.Min.Add(p)
+	r.Max = r.Max.Add(p)
+	return r
+}
+
+func (r Rectangle) Canon() Rectangle {
+	if r.Max.Row < r.Min.Row {
+		r.Min.Row, r.Max.Row = r.Max.Row, r.Min.Row
+	}
+	if r.Max.Col < r.Min.Col {
+		r.Min.Col, r.Max.Col = r.Max.Col, r.Min.Col
+	}
+	return r
+}
+
+func (r Rectangle) Contains(p Pos) bool {
+	return p.Row >= r.Min.Row && p.Row < r.Max.Row && p.Col >= r.Min.Col && p.Col < r.Max.Col
+}
+
+func (r Rectangle) Width() int {
+	return r.Max.Col - r.Min.Col
+}
+
+func (r Rectangle) Height() int {
+	return r.Max.Row - r.Min.Row
+}
+
+func (r Rectangle) Empty() bool {
+	return r.Max.Row <= r.Min.Row || r.Max.Col <= r.Min.Col
+}
+
+func (r Rectangle) Eq(s Rectangle) bool {
+	return r == s || (r.Empty() && s.Empty())
+}
+
+func (r Rectangle) In(s Rectangle) bool {
+	if r.Empty() {
+		return true
+	}
+	return s.Min.Row <= r.Min.Row && r.Max.Row <= s.Max.Row && s.Min.Col <= r.Min.Col && r.Max.Col <= s.Max.Col
+}
+
+func (r Rectangle) Inset(n int) Rectangle {
+	if r.Height() < 2*n {
+		r.Min.Row = (r.Min.Row + r.Max.Row) / 2
+		r.Max.Row = r.Min.Row
+	} else {
+		r.Min.Row += n
+		r.Max.Row -= n
+	}
+	if r.Width() < 2*n {
+		r.Min.Col = (r.Min.Col + r.Max.Col) / 2
+		r.Max.Col = r.Min.Col
+	} else {
+		r.Min.Col += n
+		r.Max.Col -= n
+	}
+	return r
+}
+
+func (r Rectangle) Intersect(s Rectangle) Rectangle {
+	r.Min.Row = max(r.Min.Row, s.Min.Row)
+	r.Min.Col = max(r.Min.Col, s.Min.Col)
+	r.Max.Row = min(r.Max.Row, s.Max.Row)
+	r.Max.Col = min(r.Max.Col, s.Max.Col)
+	if r.Empty() {
+		return Rectangle{}
+	}
+	return r
+}
+
+func (r Rectangle) Hull(s Rectangle) Rectangle {
+	if r.Empty() {
+		return s
+	}
+	if s.Empty() {
+		return r
+	}
+	r.Min.Row = min(r.Min.Row, s.Min.Row)
+	r.Min.Col = min(r.Min.Col, s.Min.Col)
+	r.Max.Row = max(r.Max.Row, s.Max.Row)
+	r.Max.Col = max(r.Max.Col, s.Max.Col)
+	return r
+}
+
+func (r Rectangle) Overlaps(s Rectangle) bool {
+	return !r.Empty() && !s.Empty() && r.Min.Col < s.Max.Col && s.Min.Col < r.Max.Col && r.Min.Row < s.Max.Row && s.Min.Row < r.Max.Row
 }
