@@ -55,3 +55,37 @@ func Lift[A, B any](s Seq[A], f func(A) B) Seq2[A, B] {
 		}
 	}
 }
+
+func Enumerate[A any](s Seq[A]) Seq2[int, A] {
+	return func(yield func(int, A) bool) {
+		i := 0
+		for a := range s {
+			if !yield(i, a) {
+				return
+			}
+			i++
+		}
+	}
+}
+
+func Len[A any](s Seq[A]) int {
+	i := 0
+	for _ = range s {
+		i++
+	}
+	return i
+}
+
+func FoldR[A, B any](f func(A, B) B, s Seq[A], z B) B {
+	for a := range s {
+		z = f(a, z)
+	}
+	return z
+}
+
+func FoldL[A, B any](f func(B, A) B, s Seq[A], z B) B {
+	for a := range s {
+		z = f(z, a)
+	}
+	return z
+}
