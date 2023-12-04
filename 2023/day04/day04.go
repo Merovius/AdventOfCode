@@ -4,14 +4,10 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"strconv"
-	"strings"
-	"unicode"
 
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
@@ -26,21 +22,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cards, err := parse.Lines(
-		parse.Struct[Card](
-			split.Regexp(`(.*): (.*) \| (.*)`),
-			func(s string) (int, error) {
-				idx, ok := strings.CutPrefix(s, "Card")
-				if !ok {
-					return 0, errors.New(`expected "Card"`)
-				}
-				idx = strings.TrimLeftFunc(idx, unicode.IsSpace)
-				return strconv.Atoi(idx)
-			},
-			parse.Slice(split.Fields, parse.Signed[int]),
-			parse.Slice(split.Fields, parse.Signed[int]),
-		),
-	)(string(bytes.TrimSpace(buf)))
+	cards, err := Parse(buf)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -52,6 +34,17 @@ type Card struct {
 	Index   int
 	Winning []int
 	Have    []int
+}
+
+func Parse(b []byte) ([]Card, error) {
+	return parse.Lines(
+		parse.Struct[Card](
+			split.Regexp(`Card \s*(\d+): (.*) \| (.*)`),
+			parse.Signed[int],
+			parse.Slice(split.Fields, parse.Signed[int]),
+			parse.Slice(split.Fields, parse.Signed[int]),
+		),
+	)(string(bytes.TrimSpace(b)))
 }
 
 func Part1(cards []Card) int {

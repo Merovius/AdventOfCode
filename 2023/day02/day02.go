@@ -7,8 +7,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
@@ -22,13 +20,7 @@ func main() {
 	buf = bytes.TrimSpace(buf)
 	games, err := parse.Lines(parse.Struct[Game](
 		split.On(": "),
-		func(s string) (int, error) {
-			idx, ok := strings.CutPrefix(s, "Game ")
-			if !ok {
-				return 0, fmt.Errorf(`expected "Game <idx>, got %q"`, s)
-			}
-			return strconv.Atoi(idx)
-		},
+		parse.Prefix("Game ", parse.Signed[int]),
 		parse.Slice(
 			split.On("; "),
 			parse.Slice(

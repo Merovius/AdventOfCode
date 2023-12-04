@@ -240,7 +240,7 @@ func Struct[S any](s split.Func, fields ...any) Parser[S] {
 			return v, err
 		}
 		if len(sp) != len(fs) {
-			return v, fmt.Errorf("Struct[%T]: got %d strings for %d fields", *new(S), len(sp), len(fs))
+			return v, fmt.Errorf("Struct[%T]: got %q for %d fields", *new(S), sp, len(fs))
 		}
 		rv := reflect.ValueOf(&v).Elem()
 		for i, f := range fs {
@@ -323,6 +323,17 @@ var parseT = reflect.TypeOf(new(parseIface)).Elem()
 // String parses any string as itself.
 func String[T ~string](in string) (T, error) {
 	return T(in), nil
+}
+
+// Prefix expects a prefix and parses the rest of the string using p.
+func Prefix[T any](prefix string, p Parser[T]) Parser[T] {
+	return func(in string) (T, error) {
+		rest, ok := strings.CutPrefix(in, prefix)
+		if !ok {
+			return *new(T), fmt.Errorf("expect %q", prefix)
+		}
+		return p(rest)
+	}
 }
 
 // Unsigned parses an unsigned number using strconv.ParseUint.

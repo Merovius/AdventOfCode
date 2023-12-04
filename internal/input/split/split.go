@@ -40,6 +40,24 @@ func On(sep string) Func {
 	}
 }
 
+// Split along any of a set of separators. If multiple separators overlap, the
+// first match is used.
+func Any(sep ...string) Func {
+	return func(in string) ([]string, error) {
+		var out []string
+		for len(in) > 0 {
+			i, n := len(in), 0
+			for _, s := range sep {
+				if j := strings.Index(in, s); j >= 0 && j < i {
+					i, n = j, len(s)
+				}
+			}
+			out, in = append(out, in[:i]), in[i+n:]
+		}
+		return out, nil
+	}
+}
+
 // Split into at most n pieces, along sep.
 func SplitN(sep string, n int) Func {
 	return func(s string) ([]string, error) {
