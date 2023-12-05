@@ -12,7 +12,7 @@ type Func func(string) ([]string, error)
 // Split into blocks, separated by empty lines.
 func Blocks(s string) ([]string, error) {
 	if len(s) == 0 {
-		return nil, errors.New("empty input")
+		return nil, errors.New("split.Blocks: empty input")
 	}
 	return strings.Split(s, "\n\n"), nil
 }
@@ -20,7 +20,7 @@ func Blocks(s string) ([]string, error) {
 // Split into whitespace-separated fields.
 func Fields(s string) ([]string, error) {
 	if len(s) == 0 {
-		return nil, errors.New("empty input")
+		return nil, errors.New("split.Fields: empty input")
 	}
 	return strings.Fields(s), nil
 }
@@ -28,7 +28,7 @@ func Fields(s string) ([]string, error) {
 // Split into lines.
 func Lines(s string) ([]string, error) {
 	if len(s) == 0 {
-		return nil, errors.New("empty input")
+		return nil, errors.New("split.Lines: empty input")
 	}
 	return strings.Split(s, "\n"), nil
 }
@@ -68,11 +68,11 @@ func SplitN(sep string, n int) Func {
 // Split into capture groups of a regular expression. The regular expression
 // must match the full parsed string.
 func Regexp(re string) Func {
-	if !strings.HasPrefix(re, "^") {
-		re = "^" + re
+	if !strings.HasPrefix(re, `\A`) {
+		re = `\A` + re
 	}
-	if !strings.HasSuffix(re, "$") {
-		re += "$"
+	if !strings.HasSuffix(re, `\z`) {
+		re += `\z`
 	}
 	r, err := regexp.Compile(re)
 	if err != nil {
