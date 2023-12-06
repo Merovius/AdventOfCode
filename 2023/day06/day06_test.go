@@ -18,8 +18,8 @@ func Test(t *testing.T) {
 		wantPart1 int
 		wantPart2 int
 	}{
-		{"example", example, 35, 46},
-		{"input", input, 379811651, 27992443},
+		{"example", example, 288, 71503},
+		{"input", input, 633080, 20048741},
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
