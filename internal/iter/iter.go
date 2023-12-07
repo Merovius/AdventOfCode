@@ -27,29 +27,27 @@ func Filter2[A, B any](s Seq2[A, B], f func(A, B) bool) Seq2[A, B] {
 }
 
 func Left[A, B any](s Seq2[A, B]) Seq[A] {
-	return func(yield func(A) bool) {
-		for a, _ := range s {
-			if !yield(a) {
-				return
-			}
-		}
-	}
+	return Project(s, func(a A, _ B) A { return a })
 }
 
 func Right[A, B any](s Seq2[A, B]) Seq[B] {
-	return func(yield func(B) bool) {
-		for _, b := range s {
-			if !yield(b) {
-				return
-			}
-		}
-	}
+	return Project(s, func(_ A, b B) B { return b })
 }
 
 func Lift[A, B any](s Seq[A], f func(A) B) Seq2[A, B] {
 	return func(yield func(A, B) bool) {
 		for a := range s {
 			if !yield(a, f(a)) {
+				return
+			}
+		}
+	}
+}
+
+func Project[A, B, C any](s Seq2[A, B], f func(A, B) C) Seq[C] {
+	return func(yield func(C) bool) {
+		for a, b := range s {
+			if !yield(f(a, b)) {
 				return
 			}
 		}
