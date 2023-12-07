@@ -86,3 +86,12 @@ func Regexp(re string) Func {
 		return sp[1:], nil
 	}
 }
+
+// Split into bytes.
+func Bytes(s string) ([]string, error) {
+	out := make([]string, len(s))
+	for i := 0; i < len(s); i++ {
+		out[i] = string(s[i])
+	}
+	return out, nil
+}

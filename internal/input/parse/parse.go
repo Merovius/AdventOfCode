@@ -371,6 +371,14 @@ func Rune(in string) (rune, error) {
 	return r, nil
 }
 
+// Byte parses a single byte.
+func Byte[T ~byte](in string) (T, error) {
+	if len(in) != 1 {
+		return 0, fmt.Errorf("parse.Byte[%T]: expected single byte, got %q", *new(T), in)
+	}
+	return T(in[0]), nil
+}
+
 // Enum parses as any of opts.
 func Enum[T ~byte | ~rune | ~string](opts ...T) Parser[T] {
 	return func(in string) (v T, err error) {
