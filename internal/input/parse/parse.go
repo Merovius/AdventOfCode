@@ -336,6 +336,15 @@ func Prefix[T any](prefix string, p Parser[T]) Parser[T] {
 	}
 }
 
+// TrimSpace removes all leading and trailing white space from the input and
+// passes the result to p.
+func TrimSpace[T any](p Parser[T]) Parser[T] {
+	return func(in string) (T, error) {
+		in = strings.TrimSpace(in)
+		return p(in)
+	}
+}
+
 // Unsigned parses an unsigned number using strconv.ParseUint.
 func Unsigned[T constraints.Unsigned](in string) (T, error) {
 	var v T

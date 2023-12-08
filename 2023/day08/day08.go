@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -18,7 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	in, err := Parse(buf)
+	in, err := Parse(string(buf))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,8 +25,8 @@ func main() {
 	fmt.Println("Part 2:", Part2(in))
 }
 
-func Parse(b []byte) (Network, error) {
-	return parse.Struct[Network](
+func Parse(s string) (Network, error) {
+	return parse.TrimSpace(parse.Struct[Network](
 		split.Blocks,
 		parse.Slice(split.Bytes, parse.Enum(L, R)),
 		parse.Lines(
@@ -38,7 +37,7 @@ func Parse(b []byte) (Network, error) {
 				parse.String[string],
 			),
 		),
-	)(string(bytes.TrimSpace(b)))
+	))(s)
 }
 
 type Network struct {
@@ -157,11 +156,6 @@ loop:
 		}
 		cycles = append(cycles, c)
 	}
-
-	// TODO: Do we need to take into account that there might be smaller
-	// cycles? e.g. if a loop of length 4 contains a goal at 1 and 3, it will
-	// be counted as two cycles of length 4, but could also be counted as one
-	// cycle of length 2.
 	return cycles
 }
 

@@ -2,65 +2,69 @@ package main
 
 import (
 	_ "embed"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
+
+	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"github.com/Merovius/AdventOfCode/internal/input/split"
 )
 
-//go:embed example1.txt
-var example1 []byte
+type TestCase struct {
+	name  string
+	Want  int
+	Input Network
+}
 
-//go:embed example2.txt
-var example2 []byte
-
-//go:embed example3.txt
-var example3 []byte
-
-//go:embed example4.txt
-var example4 []byte
-
-//go:embed input.txt
-var input []byte
+func ReadTestCases(t *testing.T) []TestCase {
+	t.Helper()
+	testdata := filepath.Join("testdata", filepath.FromSlash(t.Name()))
+	d, err := os.ReadDir(testdata)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var tcs []TestCase
+	for _, e := range d {
+		name, ok := strings.CutSuffix(e.Name(), ".txt")
+		if !ok {
+			continue
+		}
+		b, err := os.ReadFile(filepath.Join(testdata, e.Name()))
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+		tc, err := parse.Struct[TestCase](
+			split.SplitN("\n", 2),
+			parse.Signed[int],
+			Parse,
+		)(string(b))
+		if err != nil {
+			t.Errorf("parsing %s: %v", filepath.Join(testdata, e.Name()), err)
+			continue
+		}
+		tc.name = name
+		tcs = append(tcs, tc)
+	}
+	return tcs
+}
 
 func TestPart1(t *testing.T) {
-	tcs := []struct {
-		name string
-		in   []byte
-		want int
-	}{
-		{"example1", example1, 2},
-		{"example2", example2, 6},
-		{"input", input, 20569},
-	}
-	for _, tc := range tcs {
+	for _, tc := range ReadTestCases(t) {
 		t.Run(tc.name, func(t *testing.T) {
-			in, err := Parse(tc.in)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if got := Part1(in); got != tc.want {
-				t.Errorf("Part1(…) = %v, want %v", got, tc.want)
+			if got := Part1(tc.Input); got != tc.Want {
+				t.Errorf("Part1(…) = %v, want %v", got, tc.Want)
 			}
 		})
 	}
 }
 
 func TestPart2(t *testing.T) {
-	tcs := []struct {
-		name string
-		in   []byte
-		want int
-	}{
-		{"example3", example3, 6},
-		{"example4", example4, 6},
-		{"input", input, 21366921060721},
-	}
-	for _, tc := range tcs {
+	for _, tc := range ReadTestCases(t) {
 		t.Run(tc.name, func(t *testing.T) {
-			in, err := Parse(tc.in)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if got := Part2(in); got != tc.want {
-				t.Errorf("Part1(…) = %v, want %v", got, tc.want)
+			if got := Part2(tc.Input); got != tc.Want {
+				t.Errorf("Part2(…) = %v, want %v", got, tc.Want)
 			}
 		})
 	}

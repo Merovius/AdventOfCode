@@ -1,0 +1,16 @@
+6
+L
+
+AAA = (ZAZ, DAX)
+ABA = (XDX, DAX)
+ACA = (XEX, DAX)
+DAX = (DBX, DCX)
+DBX = (DCX, DAX)
+DCX = (DAX, DBX)
+XAX = (ZCZ, DAX)
+XBX = (XAX, DAX)
+XDX = (ZBZ, DAX)
+XEX = (ZBZ, DAX)
+ZAZ = (XAX, DAX)
+ZBZ = (XDX, DAX)
+ZCZ = (XBX, DAX)
