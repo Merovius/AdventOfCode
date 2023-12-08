@@ -100,3 +100,46 @@ func Abs[T constraints.Signed](v T) T {
 	}
 	return v
 }
+
+// GCD returns z, x, y, such that gcd(a, b) == z == a*x+b*y.
+//
+// a and b may be positive, zero or negative.
+//
+// If a == b == 0, GCD sets z = x = y = 0.
+//
+// If a == 0 and b != 0, GCD sets z = |b|, x = 0, y = sign(b) * 1.
+//
+// If a != 0 and b == 0, GCD sets z = |a|, x = sign(a) * 1, y = 0.
+func GCD[T constraints.Integer](a, b T) (z, x, y T) {
+	if a == 0 && b == 0 {
+		return 0, 0, 0
+	}
+	if a == 0 {
+		if b < 0 {
+			s := -1
+			return -b, 0, T(s)
+		}
+		return b, 0, 1
+	}
+	if b == 0 {
+		if a < 0 {
+			s := -1
+			return -a, T(s), 0
+		}
+		return a, 1, 0
+	}
+
+	var r0, r T = a, b
+	var s0, s T = 1, 0
+	var t0, t T = 0, 1
+	for r != 0 {
+		q := r0 / r
+		r0, r = r, r0-q*r
+		s0, s = s, s0-q*s
+		t0, t = t, t0-q*t
+	}
+	if r0 < 0 {
+		return -r0, -s0, -t0
+	}
+	return r0, s0, t0
+}
