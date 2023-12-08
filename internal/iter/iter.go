@@ -3,8 +3,38 @@
 
 package iter
 
+import (
+	"sync"
+)
+
 type Seq[A any] func(yield func(A) bool)
 type Seq2[A, B any] func(yield func(A, B) bool)
+
+func Pull[A any](s Seq[A]) (next func() (A, bool), stop func()) {
+	ch := make(chan A)
+	done := make(chan struct{})
+	cancel := sync.OnceFunc(func() { close(done) })
+	wg := new(sync.WaitGroup)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for a := range s {
+			select {
+			case <-done:
+				return
+			case ch <- a:
+			}
+		}
+	}()
+	next = func() (A, bool) {
+		a, ok := <-ch
+		return a, ok
+	}
+	return next, func() {
+		cancel()
+		wg.Wait()
+	}
+}
 
 func Filter[A any](s Seq[A], f func(A) bool) Seq[A] {
 	return func(yield func(A) bool) {
