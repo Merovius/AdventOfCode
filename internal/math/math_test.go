@@ -59,3 +59,47 @@ func gcdBig[T constraints.Integer](a, b T) (z, x, y T) {
 	zb.GCD(xb, yb, ab, bb)
 	return T(zb.Int64()), T(xb.Int64()), T(yb.Int64())
 }
+
+func TestCRT(t *testing.T) {
+	tcs := []struct {
+		a  int
+		b  int
+		m  int
+		n  int
+		x  int
+		ok bool
+	}{
+		{2, 3, 3, 5, 8, true},
+		{8, 2, 15, 7, 23, true},
+	}
+	for _, tc := range tcs {
+		if x, ok := CRT(tc.a, tc.b, tc.m, tc.n); x != tc.x || ok != tc.ok {
+			t.Errorf("CRT(%d, %d, %d, %d) = %d, %v, want %d, %v", tc.a, tc.b, tc.m, tc.n, x, ok, tc.x, tc.ok)
+		}
+	}
+
+	t.Run("exhaustive", func(t *testing.T) {
+		for m := 1; m < 10; m++ {
+			for n := 1; n < 10; n++ {
+				for a := 0; a < m; a++ {
+					for b := 0; b < n; b++ {
+						x1, ok1 := CRT(a, b, m, n)
+						x2, ok2 := crtSlow(a, b, m, n)
+						if x1 != x2 || ok1 != ok2 {
+							t.Errorf("CRT(%d, %d, %d, %d) = %d, %v, want %d, %v", a, b, m, n, x1, ok1, x2, ok2)
+						}
+					}
+				}
+			}
+		}
+	})
+}
+
+func crtSlow(a, b, m, n int) (int, bool) {
+	for x := 0; x < m*n; x++ {
+		if x%m == a && x%n == b {
+			return x, true
+		}
+	}
+	return 0, false
+}

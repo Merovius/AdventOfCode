@@ -41,6 +41,24 @@ func Parse(b []byte) (Network, error) {
 	)(string(bytes.TrimSpace(b)))
 }
 
+type Network struct {
+	Instructions []Inst
+	Nodes        []Node
+}
+
+type Inst rune
+
+const (
+	L Inst = 'L'
+	R Inst = 'R'
+)
+
+type Node struct {
+	Name  string
+	Left  string
+	Right string
+}
+
 func Part1(net Network) int {
 	m := make(map[string]Node)
 	for _, n := range net.Nodes {
@@ -69,68 +87,131 @@ func Part1(net Network) int {
 }
 
 func Part2(net Network) int {
-	var steps = make(map[string]int)
-
 	m := make(map[string]Node)
 	for _, n := range net.Nodes {
 		m[n.Name] = n
-		if strings.HasSuffix(n.Name, "A") {
-			steps[n.Name] = 0
+	}
+	var (
+		cycles []cycle
+		first  = true
+	)
+	for _, n := range net.Nodes {
+		if !strings.HasSuffix(n.Name, "A") {
+			continue
 		}
+		if first {
+			cycles = run(m, net.Instructions, n.Name)
+			first = false
+			continue
+		}
+		cycles = merge(cycles, run(m, net.Instructions, n.Name))
 	}
-	for n := range steps {
-		steps[n] = run(m, net.Instructions, n)
+	if len(cycles) == 0 {
+		panic("no solution")
 	}
-
-	// output is the least common multiple of all path-lengths
-	N := 1
-	for _, s := range steps {
-		N = lcm(N, s)
+	v := math.MaxInt
+	for _, c := range cycles {
+		v = min(v, c.offset)
 	}
-	return N
+	return v
 }
 
-func run(m map[string]Node, prog []Inst, node string) int {
-	var N int
+func run(m map[string]Node, prog []Inst, node string) []cycle {
+	type state struct {
+		n string
+		k int // mod len(prog)
+	}
+	var (
+		N     int                   // current step
+		C     int                   // start of cycle
+		T     int                   // length of cycle
+		seen  = make(map[state]int) // maps state to step
+		goals []int                 // all goals we have found
+	)
+loop:
 	for {
 		for _, i := range prog {
+			s := state{node, N % len(prog)}
+			if k, ok := seen[s]; ok {
+				C, T = k, N-k
+				break loop
+			}
+			seen[s] = N
 			if strings.HasSuffix(node, "Z") {
-				// Note: Theoretically, we could reach multiple goal nodes from
-				// a single start. It doesn't happen in my input, though.
-				return N
+				goals = append(goals, N)
 			}
 			switch i {
 			case L:
 				node = m[node].Left
 			case R:
 				node = m[node].Right
-			default:
-				panic(fmt.Errorf("invalid Inst %q", i))
 			}
 			N++
 		}
 	}
+	var cycles []cycle
+	for _, g := range goals {
+		c := cycle{offset: g}
+		if g >= C {
+			c.length = T
+		}
+		cycles = append(cycles, c)
+	}
+
+	// TODO: Do we need to take into account that there might be smaller
+	// cycles? e.g. if a loop of length 4 contains a goal at 1 and 3, it will
+	// be counted as two cycles of length 4, but could also be counted as one
+	// cycle of length 2.
+	return cycles
 }
 
-type Network struct {
-	Instructions []Inst
-	Nodes        []Node
+type cycle struct {
+	offset int
+	length int
 }
 
-type Inst rune
-
-const (
-	L Inst = 'L'
-	R Inst = 'R'
-)
-
-type Node struct {
-	Name  string
-	Left  string
-	Right string
+func (c cycle) String() string {
+	return fmt.Sprintf("(%d+%d)", c.offset, c.length)
 }
 
-func lcm(a, b int) int {
-	g, _, _ := math.GCD(a, b)
-	return (a / g) * b
+func merge(a, b []cycle) []cycle {
+	out := []cycle{}
+	for _, ca := range a {
+		for _, cb := range b {
+			if c, ok := mergeCycles(ca, cb); ok {
+				out = append(out, c)
+			}
+		}
+	}
+	return out
+}
+
+func mergeCycles(a, b cycle) (cycle, bool) {
+	if a.length == 0 && b.length == 0 {
+		return cycle{}, false
+	}
+	if a.length == 0 {
+		if a.offset < b.offset {
+			return cycle{}, false
+		}
+		if (a.offset-b.offset)%b.length != 0 {
+			return cycle{}, false
+		}
+		return a, true
+	}
+	if b.length == 0 {
+		return mergeCycles(b, a)
+	}
+	x, ok := math.CRT(a.offset%a.length, b.offset%b.length, a.length, b.length)
+	if !ok {
+		return cycle{}, false
+	}
+	M := math.LCM(a.length, b.length)
+	if m := max(a.offset, b.offset); x < m {
+		x += ((m - x) / M) * M
+		if x < m {
+			x += M
+		}
+	}
+	return cycle{offset: x, length: M}, true
 }

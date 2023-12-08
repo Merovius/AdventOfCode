@@ -14,6 +14,9 @@ var example2 []byte
 //go:embed example3.txt
 var example3 []byte
 
+//go:embed example4.txt
+var example4 []byte
+
 //go:embed input.txt
 var input []byte
 
@@ -47,6 +50,7 @@ func TestPart2(t *testing.T) {
 		want int
 	}{
 		{"example3", example3, 6},
+		{"example4", example4, 6},
 		{"input", input, 21366921060721},
 	}
 	for _, tc := range tcs {

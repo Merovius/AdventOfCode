@@ -143,3 +143,37 @@ func GCD[T constraints.Integer](a, b T) (z, x, y T) {
 	}
 	return r0, s0, t0
 }
+
+// LCM returns the least common multiple of a and b.
+func LCM[T constraints.Integer](a, b T) T {
+	g, _, _ := GCD(a, b)
+	return (a / g) * b
+}
+
+// CRT solves the Chinese Remainder Theorem. The return value satisfies
+//
+//	x % m == a
+//	x % n == b
+//	0 <= x < LCM(m, n)
+//
+// If such an x exists.
+//
+// It panics, unless 0≤a<m, 0≤b<n, m>0, n>0.
+func CRT[T constraints.Integer](a, b, m, n T) (x T, ok bool) {
+	if a < 0 || a >= m || b < 0 || b >= n || m <= 0 || n <= 0 {
+		panic("invalid inputs to CRT")
+	}
+
+	g, u, v := GCD(m, n)
+	if (a-b)%g != 0 {
+		return 0, false
+	}
+	M := (m / g) * n
+	x = (a * v * (n / g)) % M
+	x += (b * u * (m / g)) % M
+	x %= M
+	if x < 0 {
+		x += M
+	}
+	return x, true
+}
