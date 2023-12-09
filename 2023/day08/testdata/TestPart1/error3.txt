@@ -1,0 +1,6 @@
+end state is unreachable
+L
+
+AAA = (BBB, ZZZ)
+BBB = (AAA, ZZZ)
+ZZZ = (ZZZ, ZZZ)

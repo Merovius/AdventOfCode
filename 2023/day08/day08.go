@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -12,11 +13,13 @@ import (
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"github.com/Merovius/AdventOfCode/internal/math"
+	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
 	dump := flag.Bool("dump", false, "dump dot of network and exit")
 	flag.Parse()
+	log.SetFlags(0)
 
 	buf, err := io.ReadAll(os.Stdin)
 	if err != nil {
@@ -30,8 +33,16 @@ func main() {
 		WriteDot(os.Stdout, in)
 		return
 	}
-	fmt.Println("Part 1:", Part1(in))
-	fmt.Println("Part 2:", Part2(in))
+	if v, err := Part1(in); err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println("Part 1:", v)
+	}
+	if v, err := Part2(in); err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println("Part 2:", v)
+	}
 }
 
 func Parse(s string) (Network, error) {
@@ -67,19 +78,29 @@ type Node struct {
 	Right string
 }
 
-func Part1(net Network) int {
-	m := make(map[string]Node)
-	for _, n := range net.Nodes {
-		m[n.Name] = n
+func Part1(net Network) (int, error) {
+	m, err := validate(net)
+	if err != nil {
+		return 0, err
+	}
+	type state struct {
+		n string
+		k int
 	}
 	var (
-		N   int
-		cur = "AAA"
+		N    int
+		cur  = "AAA"
+		seen = make(set.Set[state])
 	)
 	for {
 		for _, i := range net.Instructions {
+			s := state{cur, N % len(net.Instructions)}
+			if seen.Contains(s) {
+				return 0, errors.New("end state is unreachable")
+			}
+			seen.Add(s)
 			if cur == "ZZZ" {
-				return N
+				return N, nil
 			}
 			switch i {
 			case L:
@@ -94,11 +115,12 @@ func Part1(net Network) int {
 	}
 }
 
-func Part2(net Network) int {
-	m := make(map[string]Node)
-	for _, n := range net.Nodes {
-		m[n.Name] = n
+func Part2(net Network) (int, error) {
+	m, err := validate(net)
+	if err != nil {
+		return 0, err
 	}
+
 	var (
 		cycles []cycle
 		first  = true
@@ -109,19 +131,53 @@ func Part2(net Network) int {
 		}
 		if first {
 			cycles = run(m, net.Instructions, n.Name)
+			if len(cycles) == 0 {
+				return 0, fmt.Errorf("node %q does not reach end state", n.Name)
+			}
 			first = false
 			continue
 		}
 		cycles = merge(cycles, run(m, net.Instructions, n.Name))
-	}
-	if len(cycles) == 0 {
-		panic("no solution")
+		if len(cycles) == 0 {
+			return 0, fmt.Errorf("node %q never reaches end state with other nodes", n.Name)
+		}
 	}
 	v := math.MaxInt
 	for _, c := range cycles {
 		v = min(v, c.offset)
 	}
-	return v
+	return v, nil
+}
+
+func validate(net Network) (map[string]Node, error) {
+	m := make(map[string]Node)
+	starts, ends := make(set.Set[string]), make(set.Set[string])
+	for _, n := range net.Nodes {
+		if _, ok := m[n.Name]; ok {
+			return nil, fmt.Errorf("duplicate node %q", n.Name)
+		}
+		if strings.HasSuffix(n.Name, "A") {
+			starts.Add(n.Name)
+		} else if strings.HasSuffix(n.Name, "Z") {
+			ends.Add(n.Name)
+		}
+		m[n.Name] = n
+	}
+	if len(starts) != len(ends) {
+		return nil, fmt.Errorf("have %d start but %d end nodes", len(starts), len(ends))
+	}
+	for _, n := range net.Nodes {
+		if _, ok := m[n.Left]; !ok {
+			return nil, fmt.Errorf("node %q has undefined left neighbor %q", n.Name, n.Left)
+		}
+		if _, ok := m[n.Right]; !ok {
+			return nil, fmt.Errorf("node %q has undefined right neighbor %q", n.Name, n.Right)
+		}
+	}
+	if len(net.Instructions) == 0 {
+		return nil, errors.New("no instructions")
+	}
+	return m, nil
 }
 
 func run(m map[string]Node, prog []Inst, node string) []cycle {

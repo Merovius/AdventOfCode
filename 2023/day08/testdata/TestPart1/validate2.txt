@@ -1,0 +1,5 @@
+node "AAA" has undefined right neighbor "XXX"
+L
+
+AAA = (ZZZ, XXX)
+ZZZ = (ZZZ, ZZZ)

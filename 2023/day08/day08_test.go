@@ -5,6 +5,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -15,9 +16,14 @@ import (
 
 var update = flag.Bool("update", false, "update dot files of testcases")
 
+type TestResult struct {
+	Value int
+	Error string
+}
+
 type TestCase struct {
 	name  string
-	Want  int
+	Want  TestResult
 	Input Network
 }
 
@@ -41,7 +47,13 @@ func ReadTestCases(t *testing.T) []TestCase {
 		}
 		tc, err := parse.Struct[TestCase](
 			split.SplitN("\n", 2),
-			parse.Signed[int],
+			func(in string) (TestResult, error) {
+				v, err := strconv.Atoi(in)
+				if err != nil {
+					return TestResult{Error: in}, nil
+				}
+				return TestResult{Value: v}, nil
+			},
 			Parse,
 		)(string(b))
 		if err != nil {
@@ -49,10 +61,12 @@ func ReadTestCases(t *testing.T) []TestCase {
 			continue
 		}
 		if *update {
-			if name == "input" {
-				t.Log("Skipping input.dot due to size")
-			} else if err = writeDot(filepath.Join(testdata, name+".dot"), tc.Input); err != nil {
-				t.Error(err)
+			if _, err := validate(tc.Input); err == nil {
+				if name == "input" {
+					t.Log("Skipping input.dot due to size")
+				} else if err = writeDot(filepath.Join(testdata, name+".dot"), tc.Input); err != nil {
+					t.Error(err)
+				}
 			}
 		}
 		tc.name = name
@@ -76,8 +90,19 @@ func writeDot(fname string, net Network) error {
 func TestPart1(t *testing.T) {
 	for _, tc := range ReadTestCases(t) {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := Part1(tc.Input); got != tc.Want {
-				t.Errorf("Part1(…) = %v, want %v", got, tc.Want)
+			got, err := Part1(tc.Input)
+			if err != nil {
+				if tc.Want.Error == "" {
+					t.Errorf("Part1(…) = %v, %v, want %v, <nil>", got, err, tc.Want.Value)
+				} else if err.Error() != tc.Want.Error {
+					t.Errorf("Part1(…) = %v, %v, want _, %s", got, err, tc.Want.Error)
+				}
+				return
+			}
+			if tc.Want.Error != "" {
+				t.Errorf("Part1(…) = %v, <nil>, want _, %s", got, tc.Want.Error)
+			} else if got != tc.Want.Value {
+				t.Errorf("Part1(…) = %v, want %v", got, tc.Want.Value)
 			}
 		})
 	}
@@ -86,8 +111,19 @@ func TestPart1(t *testing.T) {
 func TestPart2(t *testing.T) {
 	for _, tc := range ReadTestCases(t) {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := Part2(tc.Input); got != tc.Want {
-				t.Errorf("Part2(…) = %v, want %v", got, tc.Want)
+			got, err := Part2(tc.Input)
+			if err != nil {
+				if tc.Want.Error == "" {
+					t.Errorf("Part2(…) = %v, %v, want %v, <nil>", got, err, tc.Want.Value)
+				} else if err.Error() != tc.Want.Error {
+					t.Errorf("Part2(…) = %v, %v, want _, %s", got, err, tc.Want.Error)
+				}
+				return
+			}
+			if tc.Want.Error != "" {
+				t.Errorf("Part2(…) = %v, <nil>, want _, %s", got, tc.Want.Error)
+			} else if got != tc.Want.Value {
+				t.Errorf("Part2(…) = %v, want %v", got, tc.Want.Value)
 			}
 		})
 	}

@@ -1,0 +1,7 @@
+duplicate node "BBB"
+L
+
+AAA = (ZZZ, ZZZ)
+BBB = (AAA, ZZZ)
+BBB = (ZZZ, AAA)
+ZZZ = (ZZZ, ZZZ)

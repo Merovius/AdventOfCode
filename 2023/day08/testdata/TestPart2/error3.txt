@@ -1,0 +1,9 @@
+node "02A" never reaches end state with other nodes
+L
+
+01A = (10B, XXX)
+10B = (01Z, XXX)
+02A = (02Z, XXX)
+01Z = (XXX, XXX)
+02Z = (XXX, XXX)
+XXX = (XXX, XXX)

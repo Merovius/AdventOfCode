@@ -1,0 +1,41 @@
+digraph G {
+	subgraph cluster {
+	label = "Network"
+	color=black
+		_01A [label="01A",shape=diamond]
+		_01A -> _01Z [color=green,label=L]
+		_01A -> _XXX [color=red,label=R]
+		_02A [label="02A",shape=diamond]
+		_02A -> _11B [color=green,label=L]
+		_02A -> _XXX [color=red,label=R]
+		_11B [label="11B",shape=ellipse]
+		_11B -> _02Z [color=green,label=L]
+		_11B -> _XXX [color=red,label=R]
+		_01Z [label="01Z",shape=rect]
+		_01Z -> _01A [color=green,label=L]
+		_01Z -> _XXX [color=red,label=R]
+		_02Z [label="02Z",shape=rect]
+		_02Z -> _XXX [color=green,label=L]
+		_02Z -> _XXX [color=red,label=R]
+		_XXX [label="XXX",shape=ellipse]
+		_XXX -> _XXX [color=green,label=L]
+		_XXX -> _XXX [color=red,label=R]
+	}
+
+	subgraph cluster_states {
+		label = "State machine"
+		color = black
+		_walk_01A_0 [shape=diamond,label=<01A<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_01A_0 -> _walk_01Z_0 [label=L]
+		_walk_01Z_0 [shape=rect,label=<01Z<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_01Z_0 -> _walk_01A_0 [label=L]
+		_walk_02A_0 [shape=diamond,label=<02A<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_02A_0 -> _walk_11B_0 [label=L]
+		_walk_11B_0 [shape=ellipse,label=<11B<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_11B_0 -> _walk_02Z_0 [label=L]
+		_walk_02Z_0 [shape=rect,label=<02Z<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_02Z_0 -> _walk_XXX_0 [label=L]
+		_walk_XXX_0 [shape=ellipse,label=<XXX<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_XXX_0 -> _walk_XXX_0 [label=L]
+	}
+}
