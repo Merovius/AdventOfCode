@@ -1,0 +1,12 @@
+3
+L
+
+01A = (01Z, XXX)
+02A = (21B, XXX)
+03A = (03Z, XXX)
+21B = (02Z, XXX)
+13B = (01Z, XXX)
+01Z = (01Z, XXX)
+02Z = (01Z, XXX)
+03Z = (13B, XXX)
+XXX = (XXX, XXX)

@@ -16,3 +16,4 @@ L
 03C = (03D, XXX)
 03D = (03Z, XXX)
 03Z = (03C, XXX)
+XXX = (XXX, XXX)
