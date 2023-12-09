@@ -3,6 +3,8 @@ package main
 import (
 	_ "embed"
 	"testing"
+
+	"github.com/Merovius/AdventOfCode/internal/slices"
 )
 
 //go:embed example.txt
@@ -32,4 +34,30 @@ func Test(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Benchmark(b *testing.B) {
+	b.Run("WithParse", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			in, _ := Parse(input)
+			Solve(in)
+		}
+	})
+	in, _ := Parse(input)
+	b.Run("WithoutParse", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			b.StopTimer()
+			clone := deepClone(in)
+			b.StartTimer()
+			Solve(clone)
+		}
+	})
+}
+
+func deepClone(in [][]int) [][]int {
+	out := make([][]int, len(in))
+	for i, s := range in {
+		out[i] = slices.Clone(s)
+	}
+	return out
 }
