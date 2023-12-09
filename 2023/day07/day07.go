@@ -86,14 +86,16 @@ const (
 )
 
 // handType maps the highest two counts of card values to the type of hand.
-var handType = map[[2]uint8]Type{
-	{5, 0}: FiveOfAKind,
-	{4, 1}: FourOfAKind,
-	{3, 2}: FullHouse,
-	{3, 1}: ThreeOfAKind,
-	{2, 2}: TwoPair,
-	{2, 1}: OnePair,
-	{1, 1}: HighCard,
+// The second highest count is at most 2, so we can encode them into a uint8
+// as (m1<<2)+m2
+var handType = [...]Type{
+	(5 << 2) + 0: FiveOfAKind,
+	(4 << 2) + 1: FourOfAKind,
+	(3 << 2) + 2: FullHouse,
+	(3 << 2) + 1: ThreeOfAKind,
+	(2 << 2) + 2: TwoPair,
+	(2 << 2) + 1: OnePair,
+	(1 << 2) + 1: HighCard,
 }
 
 // Value returns a value for h that can be used to rank Hands. A better Hand
@@ -135,7 +137,7 @@ func (h Hand) Value(joker bool) uint32 {
 	// Encode the card values, in lexicographic order, as a Base 13 integer.
 	// The hand type is the most significant digit, so it dominates the
 	// magnitude of the value.
-	v := uint32(handType[maxC])
+	v := uint32(handType[(maxC[0]<<2)+maxC[1]])
 	for _, b := range h {
 		v *= uint32(len(ord))
 		v += uint32(b)
