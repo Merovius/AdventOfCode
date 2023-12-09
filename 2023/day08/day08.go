@@ -182,6 +182,9 @@ func merge(a, b []cycle) []cycle {
 
 func mergeCycles(a, b cycle) (cycle, bool) {
 	if a.length == 0 && b.length == 0 {
+		if a.offset == b.offset {
+			return a, true
+		}
 		return cycle{}, false
 	}
 	if a.length == 0 {
