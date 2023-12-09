@@ -1,0 +1,99 @@
+digraph G {
+	subgraph cluster {
+	label = "Network"
+	color=black
+		_AAA [label="AAA",shape=diamond]
+		_AAA -> _ZAZ [color=green,label=L]
+		_AAA -> _DAX [color=red,label=R]
+		_ABA [label="ABA",shape=diamond]
+		_ABA -> _XDX [color=green,label=L]
+		_ABA -> _DAX [color=red,label=R]
+		_ACA [label="ACA",shape=diamond]
+		_ACA -> _XEX [color=green,label=L]
+		_ACA -> _DAX [color=red,label=R]
+		_DAX [label="DAX",shape=ellipse]
+		_DAX -> _DBX [color=green,label=L]
+		_DAX -> _DCX [color=red,label=R]
+		_DBX [label="DBX",shape=ellipse]
+		_DBX -> _DCX [color=green,label=L]
+		_DBX -> _DAX [color=red,label=R]
+		_DCX [label="DCX",shape=ellipse]
+		_DCX -> _DAX [color=green,label=L]
+		_DCX -> _DBX [color=red,label=R]
+		_XAX [label="XAX",shape=ellipse]
+		_XAX -> _ZCZ [color=green,label=L]
+		_XAX -> _DAX [color=red,label=R]
+		_XBX [label="XBX",shape=ellipse]
+		_XBX -> _XAX [color=green,label=L]
+		_XBX -> _DAX [color=red,label=R]
+		_XDX [label="XDX",shape=ellipse]
+		_XDX -> _ZBZ [color=green,label=L]
+		_XDX -> _DAX [color=red,label=R]
+		_XEX [label="XEX",shape=ellipse]
+		_XEX -> _ZBZ [color=green,label=L]
+		_XEX -> _DAX [color=red,label=R]
+		_ZAZ [label="ZAZ",shape=rect]
+		_ZAZ -> _XAX [color=green,label=L]
+		_ZAZ -> _DAX [color=red,label=R]
+		_ZBZ [label="ZBZ",shape=rect]
+		_ZBZ -> _XDX [color=green,label=L]
+		_ZBZ -> _DAX [color=red,label=R]
+		_ZCZ [label="ZCZ",shape=rect]
+		_ZCZ -> _XBX [color=green,label=L]
+		_ZCZ -> _DAX [color=red,label=R]
+	}
+
+	subgraph cluster_AAA {
+		label = "State machine starting at AAA"
+		color = black
+		_walk_AAA_AAA_0 [shape=diamond,label=<AAA<br/><font color="red"><b>L</b></font>>]
+		_walk_AAA_AAA_0 -> _walk_AAA_ZAZ_0 [label=L]
+		_walk_AAA_AAA_0 -> _walk_AAA_DAX_0 [label=R,color=gray]
+		_walk_AAA_ZAZ_0 [shape=rect,label=<ZAZ<br/><font color="red"><b>L</b></font>>]
+		_walk_AAA_ZAZ_0 -> _walk_AAA_XAX_0 [label=L]
+		_walk_AAA_ZAZ_0 -> _walk_AAA_DAX_0 [label=R,color=gray]
+		_walk_AAA_XAX_0 [shape=ellipse,label=<XAX<br/><font color="red"><b>L</b></font>>]
+		_walk_AAA_XAX_0 -> _walk_AAA_ZCZ_0 [label=L]
+		_walk_AAA_XAX_0 -> _walk_AAA_DAX_0 [label=R,color=gray]
+		_walk_AAA_ZCZ_0 [shape=rect,label=<ZCZ<br/><font color="red"><b>L</b></font>>]
+		_walk_AAA_ZCZ_0 -> _walk_AAA_XBX_0 [label=L]
+		_walk_AAA_ZCZ_0 -> _walk_AAA_DAX_0 [label=R,color=gray]
+		_walk_AAA_XBX_0 [shape=ellipse,label=<XBX<br/><font color="red"><b>L</b></font>>]
+		_walk_AAA_XBX_0 -> _walk_AAA_XAX_0 [label=L]
+		_walk_AAA_XBX_0 -> _walk_AAA_DAX_0 [label=R,color=gray]
+		_walk_AAA_DAX_0 [shape=ellipse,label=<DAX<br/><font color="red"><b>L</b></font>>,color=gray]
+	}
+
+	subgraph cluster_ABA {
+		label = "State machine starting at ABA"
+		color = black
+		_walk_ABA_ABA_0 [shape=diamond,label=<ABA<br/><font color="red"><b>L</b></font>>]
+		_walk_ABA_ABA_0 -> _walk_ABA_XDX_0 [label=L]
+		_walk_ABA_ABA_0 -> _walk_ABA_DAX_0 [label=R,color=gray]
+		_walk_ABA_XDX_0 [shape=ellipse,label=<XDX<br/><font color="red"><b>L</b></font>>]
+		_walk_ABA_XDX_0 -> _walk_ABA_ZBZ_0 [label=L]
+		_walk_ABA_XDX_0 -> _walk_ABA_DAX_0 [label=R,color=gray]
+		_walk_ABA_ZBZ_0 [shape=rect,label=<ZBZ<br/><font color="red"><b>L</b></font>>]
+		_walk_ABA_ZBZ_0 -> _walk_ABA_XDX_0 [label=L]
+		_walk_ABA_ZBZ_0 -> _walk_ABA_DAX_0 [label=R,color=gray]
+		_walk_ABA_DAX_0 [shape=ellipse,label=<DAX<br/><font color="red"><b>L</b></font>>,color=gray]
+	}
+
+	subgraph cluster_ACA {
+		label = "State machine starting at ACA"
+		color = black
+		_walk_ACA_ACA_0 [shape=diamond,label=<ACA<br/><font color="red"><b>L</b></font>>]
+		_walk_ACA_ACA_0 -> _walk_ACA_XEX_0 [label=L]
+		_walk_ACA_ACA_0 -> _walk_ACA_DAX_0 [label=R,color=gray]
+		_walk_ACA_XEX_0 [shape=ellipse,label=<XEX<br/><font color="red"><b>L</b></font>>]
+		_walk_ACA_XEX_0 -> _walk_ACA_ZBZ_0 [label=L]
+		_walk_ACA_XEX_0 -> _walk_ACA_DAX_0 [label=R,color=gray]
+		_walk_ACA_ZBZ_0 [shape=rect,label=<ZBZ<br/><font color="red"><b>L</b></font>>]
+		_walk_ACA_ZBZ_0 -> _walk_ACA_XDX_0 [label=L]
+		_walk_ACA_ZBZ_0 -> _walk_ACA_DAX_0 [label=R,color=gray]
+		_walk_ACA_XDX_0 [shape=ellipse,label=<XDX<br/><font color="red"><b>L</b></font>>]
+		_walk_ACA_XDX_0 -> _walk_ACA_ZBZ_0 [label=L]
+		_walk_ACA_XDX_0 -> _walk_ACA_DAX_0 [label=R,color=gray]
+		_walk_ACA_DAX_0 [shape=ellipse,label=<DAX<br/><font color="red"><b>L</b></font>>,color=gray]
+	}
+}

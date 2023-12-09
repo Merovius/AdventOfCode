@@ -1,0 +1,73 @@
+digraph G {
+	subgraph cluster {
+	label = "Network"
+	color=black
+		_11A [label="11A",shape=diamond]
+		_11A -> _11B [color=green,label=L]
+		_11A -> _XXX [color=red,label=R]
+		_11B [label="11B",shape=ellipse]
+		_11B -> _XXX [color=green,label=L]
+		_11B -> _11Z [color=red,label=R]
+		_11Z [label="11Z",shape=rect]
+		_11Z -> _11B [color=green,label=L]
+		_11Z -> _XXX [color=red,label=R]
+		_22A [label="22A",shape=diamond]
+		_22A -> _22B [color=green,label=L]
+		_22A -> _XXX [color=red,label=R]
+		_22B [label="22B",shape=ellipse]
+		_22B -> _22C [color=green,label=L]
+		_22B -> _22C [color=red,label=R]
+		_22C [label="22C",shape=ellipse]
+		_22C -> _22Z [color=green,label=L]
+		_22C -> _22Z [color=red,label=R]
+		_22Z [label="22Z",shape=rect]
+		_22Z -> _22B [color=green,label=L]
+		_22Z -> _22B [color=red,label=R]
+		_XXX [label="XXX",shape=ellipse]
+		_XXX -> _XXX [color=green,label=L]
+		_XXX -> _XXX [color=red,label=R]
+	}
+
+	subgraph cluster_11A {
+		label = "State machine starting at 11A"
+		color = black
+		_walk_11A_11A_0 [shape=diamond,label=<11A<br/><font color="red"><b>L</b></font>R>]
+		_walk_11A_11A_0 -> _walk_11A_11B_1 [label=L]
+		_walk_11A_11A_0 -> _walk_11A_XXX_1 [label=R,color=gray]
+		_walk_11A_11B_1 [shape=ellipse,label=<11B<br/>L<font color="red"><b>R</b></font>>]
+		_walk_11A_11B_1 -> _walk_11A_11Z_0 [label=R]
+		_walk_11A_11B_1 -> _walk_11A_XXX_0 [label=L,color=gray]
+		_walk_11A_11Z_0 [shape=rect,label=<11Z<br/><font color="red"><b>L</b></font>R>]
+		_walk_11A_11Z_0 -> _walk_11A_11B_1 [label=L]
+		_walk_11A_11Z_0 -> _walk_11A_XXX_1 [label=R,color=gray]
+		_walk_11A_XXX_1 [shape=ellipse,label=<XXX<br/>L<font color="red"><b>R</b></font>>,color=gray]
+		_walk_11A_XXX_0 [shape=ellipse,label=<XXX<br/><font color="red"><b>L</b></font>R>,color=gray]
+	}
+
+	subgraph cluster_22A {
+		label = "State machine starting at 22A"
+		color = black
+		_walk_22A_22A_0 [shape=diamond,label=<22A<br/><font color="red"><b>L</b></font>R>]
+		_walk_22A_22A_0 -> _walk_22A_22B_1 [label=L]
+		_walk_22A_22A_0 -> _walk_22A_XXX_1 [label=R,color=gray]
+		_walk_22A_22B_1 [shape=ellipse,label=<22B<br/>L<font color="red"><b>R</b></font>>]
+		_walk_22A_22B_1 -> _walk_22A_22C_0 [label=R]
+		_walk_22A_22B_1 -> _walk_22A_22C_0 [label=L,color=gray]
+		_walk_22A_22C_0 [shape=ellipse,label=<22C<br/><font color="red"><b>L</b></font>R>]
+		_walk_22A_22C_0 -> _walk_22A_22Z_1 [label=L]
+		_walk_22A_22C_0 -> _walk_22A_22Z_1 [label=R,color=gray]
+		_walk_22A_22Z_1 [shape=rect,label=<22Z<br/>L<font color="red"><b>R</b></font>>]
+		_walk_22A_22Z_1 -> _walk_22A_22B_0 [label=R]
+		_walk_22A_22Z_1 -> _walk_22A_22B_0 [label=L,color=gray]
+		_walk_22A_22B_0 [shape=ellipse,label=<22B<br/><font color="red"><b>L</b></font>R>]
+		_walk_22A_22B_0 -> _walk_22A_22C_1 [label=L]
+		_walk_22A_22B_0 -> _walk_22A_22C_1 [label=R,color=gray]
+		_walk_22A_22C_1 [shape=ellipse,label=<22C<br/>L<font color="red"><b>R</b></font>>]
+		_walk_22A_22C_1 -> _walk_22A_22Z_0 [label=R]
+		_walk_22A_22C_1 -> _walk_22A_22Z_0 [label=L,color=gray]
+		_walk_22A_22Z_0 [shape=rect,label=<22Z<br/><font color="red"><b>L</b></font>R>]
+		_walk_22A_22Z_0 -> _walk_22A_22B_1 [label=L]
+		_walk_22A_22Z_0 -> _walk_22A_22B_1 [label=R,color=gray]
+		_walk_22A_XXX_1 [shape=ellipse,label=<XXX<br/>L<font color="red"><b>R</b></font>>,color=gray]
+	}
+}

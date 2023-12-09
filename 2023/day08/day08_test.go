@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"flag"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,7 +10,10 @@ import (
 
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
+	"github.com/google/renameio/v2"
 )
+
+var update = flag.Bool("update", false, "update dot files of testcases")
 
 type TestCase struct {
 	name  string
@@ -44,10 +48,29 @@ func ReadTestCases(t *testing.T) []TestCase {
 			t.Errorf("parsing %s: %v", filepath.Join(testdata, e.Name()), err)
 			continue
 		}
+		if *update {
+			if name == "input" {
+				t.Log("Skipping input.dot due to size")
+			} else if err = writeDot(filepath.Join(testdata, name+".dot"), tc.Input); err != nil {
+				t.Error(err)
+			}
+		}
 		tc.name = name
 		tcs = append(tcs, tc)
 	}
 	return tcs
+}
+
+func writeDot(fname string, net Network) error {
+	f, err := renameio.NewPendingFile(fname, renameio.WithExistingPermissions())
+	if err != nil {
+		return err
+	}
+	defer f.Cleanup()
+	if err := WriteDot(f, net); err != nil {
+		return err
+	}
+	return f.CloseAtomicallyReplace()
 }
 
 func TestPart1(t *testing.T) {

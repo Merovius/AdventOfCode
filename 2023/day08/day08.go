@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -10,9 +12,13 @@ import (
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"github.com/Merovius/AdventOfCode/internal/math"
+	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
+	dump := flag.Bool("dump", false, "dump dot of network and exit")
+	flag.Parse()
+
 	buf, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
@@ -20,6 +26,10 @@ func main() {
 	in, err := Parse(string(buf))
 	if err != nil {
 		log.Fatal(err)
+	}
+	if *dump {
+		WriteDot(os.Stdout, in)
+		return
 	}
 	fmt.Println("Part 1:", Part1(in))
 	fmt.Println("Part 2:", Part2(in))
@@ -211,4 +221,143 @@ func mergeCycles(a, b cycle) (cycle, bool) {
 		}
 	}
 	return cycle{offset: x, length: M}, true
+}
+
+func WriteDot(w io.Writer, net Network) error {
+	wc := keepError(w)
+	defer wc.Close()
+	fmt.Fprintln(wc, "digraph G {")
+	fmt.Fprintln(wc, "\tsubgraph cluster {")
+	fmt.Fprintln(wc, "\tlabel = \"Network\"")
+	fmt.Fprintln(wc, "\tcolor=black")
+	for _, n := range net.Nodes {
+		shape := "ellipse"
+		if strings.HasSuffix(n.Name, "A") {
+			shape = "diamond"
+		} else if strings.HasSuffix(n.Name, "Z") {
+			shape = "rect"
+		}
+		fmt.Fprintf(wc, "\t\t_%s [label=%q,shape=%s]\n", n.Name, n.Name, shape)
+		fmt.Fprintf(wc, "\t\t_%s -> _%s [color=green,label=L]\n", n.Name, n.Left)
+		fmt.Fprintf(wc, "\t\t_%s -> _%s [color=red,label=R]\n", n.Name, n.Right)
+	}
+	fmt.Fprintln(wc, "\t}")
+	m := make(map[string]Node)
+	for _, n := range net.Nodes {
+		m[n.Name] = n
+	}
+	prog := net.Instructions
+	type state struct {
+		n string
+		k int
+	}
+	for _, n := range net.Nodes {
+		if !strings.HasSuffix(n.Name, "A") {
+			continue
+		}
+		fmt.Fprintln(wc)
+		fmt.Fprintf(wc, "\tsubgraph cluster_%s {\n", n.Name)
+		fmt.Fprintf(wc, "\t\tlabel = %q\n", "State machine starting at "+n.Name)
+		fmt.Fprintln(wc, "\t\tcolor = black")
+		start := n.Name
+		printState := func(s state, attr string) {
+			shape := "ellipse"
+			if strings.HasSuffix(s.n, "A") {
+				shape = "diamond"
+			} else if strings.HasSuffix(s.n, "Z") {
+				shape = "rect"
+			}
+			fmt.Fprintf(wc,
+				"\t\t_walk_%s_%s_%d [shape=%s,label=<%s<br/>%s<font color=\"red\"><b>%s</b></font>%s>%s]\n",
+				start,
+				s.n,
+				s.k,
+				shape,
+				s.n,
+				string(prog[:s.k]),
+				string(prog[s.k:s.k+1]),
+				string(prog[s.k+1:]),
+				attr,
+			)
+		}
+		printEdge := func(from, to state, attr string) {
+			fmt.Fprintf(wc,
+				"\t\t_walk_%s_%s_%d -> _walk_%s_%s_%d [%s]\n",
+				start,
+				from.n,
+				from.k,
+				start,
+				to.n,
+				to.k,
+				attr,
+			)
+		}
+		var (
+			N     int
+			seen  = make(map[state]int)
+			extra = make(set.Set[state])
+		)
+	loop:
+		for {
+			for _, i := range prog {
+				j := N % len(prog)
+				s := state{n.Name, j}
+				if _, ok := seen[s]; ok {
+					break loop
+				}
+				seen[s] = N
+				printState(s, "")
+				switch i {
+				case L:
+					ss := state{n.Left, (j + 1) % len(prog)}
+					printEdge(s, ss, "label=L")
+					ss.n = n.Right
+					printEdge(s, ss, "label=R,color=gray")
+					extra.Add(ss)
+					n = m[n.Left]
+				case R:
+					ss := state{n.Right, (j + 1) % len(prog)}
+					printEdge(s, ss, "label=R")
+					ss.n = n.Left
+					printEdge(s, ss, "label=L,color=gray")
+					extra.Add(state{n.Left, (j + 1) % len(prog)})
+					n = m[n.Right]
+				}
+				N++
+			}
+		}
+		for s := range extra {
+			if _, ok := seen[s]; !ok {
+				printState(s, ",color=gray")
+			}
+		}
+
+		fmt.Fprintln(wc, "\t}")
+	}
+	fmt.Fprintln(wc, "}")
+	return wc.Close()
+}
+
+type errWriter struct {
+	w   *bufio.Writer
+	err error
+}
+
+func keepError(w io.Writer) io.WriteCloser {
+	return &errWriter{w: bufio.NewWriter(w)}
+}
+
+func (w errWriter) Write(p []byte) (n int, err error) {
+	if w.err != nil {
+		return 0, w.err
+	}
+	n, w.err = w.w.Write(p)
+	return n, w.err
+}
+
+func (w errWriter) Close() error {
+	if w.err != nil {
+		return w.err
+	}
+	return w.w.Flush()
 }

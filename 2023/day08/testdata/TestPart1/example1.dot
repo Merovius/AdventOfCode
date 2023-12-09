@@ -1,0 +1,46 @@
+digraph G {
+	subgraph cluster {
+	label = "Network"
+	color=black
+		_AAA [label="AAA",shape=diamond]
+		_AAA -> _BBB [color=green,label=L]
+		_AAA -> _CCC [color=red,label=R]
+		_BBB [label="BBB",shape=ellipse]
+		_BBB -> _DDD [color=green,label=L]
+		_BBB -> _EEE [color=red,label=R]
+		_CCC [label="CCC",shape=ellipse]
+		_CCC -> _ZZZ [color=green,label=L]
+		_CCC -> _GGG [color=red,label=R]
+		_DDD [label="DDD",shape=ellipse]
+		_DDD -> _DDD [color=green,label=L]
+		_DDD -> _DDD [color=red,label=R]
+		_EEE [label="EEE",shape=ellipse]
+		_EEE -> _EEE [color=green,label=L]
+		_EEE -> _EEE [color=red,label=R]
+		_GGG [label="GGG",shape=ellipse]
+		_GGG -> _GGG [color=green,label=L]
+		_GGG -> _GGG [color=red,label=R]
+		_ZZZ [label="ZZZ",shape=rect]
+		_ZZZ -> _ZZZ [color=green,label=L]
+		_ZZZ -> _ZZZ [color=red,label=R]
+	}
+
+	subgraph cluster_AAA {
+		label = "State machine starting at AAA"
+		color = black
+		_walk_AAA_AAA_0 [shape=diamond,label=<AAA<br/><font color="red"><b>R</b></font>L>]
+		_walk_AAA_AAA_0 -> _walk_AAA_CCC_1 [label=R]
+		_walk_AAA_AAA_0 -> _walk_AAA_BBB_1 [label=L,color=gray]
+		_walk_AAA_CCC_1 [shape=ellipse,label=<CCC<br/>R<font color="red"><b>L</b></font>>]
+		_walk_AAA_CCC_1 -> _walk_AAA_ZZZ_0 [label=L]
+		_walk_AAA_CCC_1 -> _walk_AAA_GGG_0 [label=R,color=gray]
+		_walk_AAA_ZZZ_0 [shape=rect,label=<ZZZ<br/><font color="red"><b>R</b></font>L>]
+		_walk_AAA_ZZZ_0 -> _walk_AAA_ZZZ_1 [label=R]
+		_walk_AAA_ZZZ_0 -> _walk_AAA_ZZZ_1 [label=L,color=gray]
+		_walk_AAA_ZZZ_1 [shape=rect,label=<ZZZ<br/>R<font color="red"><b>L</b></font>>]
+		_walk_AAA_ZZZ_1 -> _walk_AAA_ZZZ_0 [label=L]
+		_walk_AAA_ZZZ_1 -> _walk_AAA_ZZZ_0 [label=R,color=gray]
+		_walk_AAA_BBB_1 [shape=ellipse,label=<BBB<br/>R<font color="red"><b>L</b></font>>,color=gray]
+		_walk_AAA_GGG_0 [shape=ellipse,label=<GGG<br/><font color="red"><b>R</b></font>L>,color=gray]
+	}
+}
