@@ -28,19 +28,19 @@ digraph G {
 	subgraph cluster_AAA {
 		label = "State machine starting at AAA"
 		color = black
-		_walk_AAA_AAA_0 [shape=diamond,label=<AAA<br/><font color="red"><b>R</b></font>L>]
+		_walk_AAA_AAA_0 [shape=diamond,label=<AAA<br/><font color="dodgerblue"><b>R</b></font>L>]
 		_walk_AAA_AAA_0 -> _walk_AAA_CCC_1 [label=R]
 		_walk_AAA_AAA_0 -> _walk_AAA_BBB_1 [label=L,color=gray]
-		_walk_AAA_CCC_1 [shape=ellipse,label=<CCC<br/>R<font color="red"><b>L</b></font>>]
+		_walk_AAA_CCC_1 [shape=ellipse,label=<CCC<br/>R<font color="dodgerblue"><b>L</b></font>>]
 		_walk_AAA_CCC_1 -> _walk_AAA_ZZZ_0 [label=L]
 		_walk_AAA_CCC_1 -> _walk_AAA_GGG_0 [label=R,color=gray]
-		_walk_AAA_ZZZ_0 [shape=rect,label=<ZZZ<br/><font color="red"><b>R</b></font>L>]
+		_walk_AAA_ZZZ_0 [shape=rect,label=<ZZZ<br/><font color="dodgerblue"><b>R</b></font>L>]
 		_walk_AAA_ZZZ_0 -> _walk_AAA_ZZZ_1 [label=R]
 		_walk_AAA_ZZZ_0 -> _walk_AAA_ZZZ_1 [label=L,color=gray]
-		_walk_AAA_ZZZ_1 [shape=rect,label=<ZZZ<br/>R<font color="red"><b>L</b></font>>]
+		_walk_AAA_ZZZ_1 [shape=rect,label=<ZZZ<br/>R<font color="dodgerblue"><b>L</b></font>>]
 		_walk_AAA_ZZZ_1 -> _walk_AAA_ZZZ_0 [label=L]
 		_walk_AAA_ZZZ_1 -> _walk_AAA_ZZZ_0 [label=R,color=gray]
-		_walk_AAA_BBB_1 [shape=ellipse,label=<BBB<br/>R<font color="red"><b>L</b></font>>,color=gray]
-		_walk_AAA_GGG_0 [shape=ellipse,label=<GGG<br/><font color="red"><b>R</b></font>L>,color=gray]
+		_walk_AAA_BBB_1 [shape=ellipse,label=<BBB<br/>R<font color="dodgerblue"><b>L</b></font>>,color=gray]
+		_walk_AAA_GGG_0 [shape=ellipse,label=<GGG<br/><font color="dodgerblue"><b>R</b></font>L>,color=gray]
 	}
 }

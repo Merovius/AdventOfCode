@@ -268,7 +268,7 @@ func WriteDot(w io.Writer, net Network) error {
 				shape = "rect"
 			}
 			fmt.Fprintf(wc,
-				"\t\t_walk_%s_%s_%d [shape=%s,label=<%s<br/>%s<font color=\"red\"><b>%s</b></font>%s>%s]\n",
+				"\t\t_walk_%s_%s_%d [shape=%s,label=<%s<br/>%s<font color=\"dodgerblue\"><b>%s</b></font>%s>%s]\n",
 				start,
 				s.n,
 				s.k,
