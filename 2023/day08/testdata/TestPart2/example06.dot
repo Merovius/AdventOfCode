@@ -31,51 +31,24 @@ digraph G {
 		_XXX -> _XXX [color=red,label=R]
 	}
 
-	subgraph cluster_01A {
-		label = "State machine starting at 01A"
+	subgraph cluster_states {
+		label = "State machine"
 		color = black
-		_walk_01A_01A_0 [shape=diamond,label=<01A<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_01A_01A_0 -> _walk_01A_01Z_0 [label=L]
-		_walk_01A_01A_0 -> _walk_01A_XXX_0 [label=R,color=gray]
-		_walk_01A_01Z_0 [shape=rect,label=<01Z<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_01A_01Z_0 -> _walk_01A_01C_0 [label=L]
-		_walk_01A_01Z_0 -> _walk_01A_XXX_0 [label=R,color=gray]
-		_walk_01A_01C_0 [shape=ellipse,label=<01C<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_01A_01C_0 -> _walk_01A_02C_0 [label=L]
-		_walk_01A_01C_0 -> _walk_01A_XXX_0 [label=R,color=gray]
-		_walk_01A_02C_0 [shape=ellipse,label=<02C<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_01A_02C_0 -> _walk_01A_03C_0 [label=L]
-		_walk_01A_02C_0 -> _walk_01A_XXX_0 [label=R,color=gray]
-		_walk_01A_03C_0 [shape=ellipse,label=<03C<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_01A_03C_0 -> _walk_01A_04C_0 [label=L]
-		_walk_01A_03C_0 -> _walk_01A_XXX_0 [label=R,color=gray]
-		_walk_01A_04C_0 [shape=ellipse,label=<04C<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_01A_04C_0 -> _walk_01A_01C_0 [label=L]
-		_walk_01A_04C_0 -> _walk_01A_XXX_0 [label=R,color=gray]
-		_walk_01A_XXX_0 [shape=ellipse,label=<XXX<br/><font color="dodgerblue"><b>L</b></font>>,color=gray]
-	}
-
-	subgraph cluster_02A {
-		label = "State machine starting at 02A"
-		color = black
-		_walk_02A_02A_0 [shape=diamond,label=<02A<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_02A_02A_0 -> _walk_02A_02Z_0 [label=L]
-		_walk_02A_02A_0 -> _walk_02A_XXX_0 [label=R,color=gray]
-		_walk_02A_02Z_0 [shape=rect,label=<02Z<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_02A_02Z_0 -> _walk_02A_01C_0 [label=L]
-		_walk_02A_02Z_0 -> _walk_02A_XXX_0 [label=R,color=gray]
-		_walk_02A_01C_0 [shape=ellipse,label=<01C<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_02A_01C_0 -> _walk_02A_02C_0 [label=L]
-		_walk_02A_01C_0 -> _walk_02A_XXX_0 [label=R,color=gray]
-		_walk_02A_02C_0 [shape=ellipse,label=<02C<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_02A_02C_0 -> _walk_02A_03C_0 [label=L]
-		_walk_02A_02C_0 -> _walk_02A_XXX_0 [label=R,color=gray]
-		_walk_02A_03C_0 [shape=ellipse,label=<03C<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_02A_03C_0 -> _walk_02A_04C_0 [label=L]
-		_walk_02A_03C_0 -> _walk_02A_XXX_0 [label=R,color=gray]
-		_walk_02A_04C_0 [shape=ellipse,label=<04C<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_02A_04C_0 -> _walk_02A_01C_0 [label=L]
-		_walk_02A_04C_0 -> _walk_02A_XXX_0 [label=R,color=gray]
-		_walk_02A_XXX_0 [shape=ellipse,label=<XXX<br/><font color="dodgerblue"><b>L</b></font>>,color=gray]
+		_walk_01A_0 [shape=diamond,label=<01A<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_01A_0 -> _walk_01Z_0 [label=L]
+		_walk_01Z_0 [shape=rect,label=<01Z<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_01Z_0 -> _walk_01C_0 [label=L]
+		_walk_01C_0 [shape=ellipse,label=<01C<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_01C_0 -> _walk_02C_0 [label=L]
+		_walk_02C_0 [shape=ellipse,label=<02C<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_02C_0 -> _walk_03C_0 [label=L]
+		_walk_03C_0 [shape=ellipse,label=<03C<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_03C_0 -> _walk_04C_0 [label=L]
+		_walk_04C_0 [shape=ellipse,label=<04C<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_04C_0 -> _walk_01C_0 [label=L]
+		_walk_02A_0 [shape=diamond,label=<02A<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_02A_0 -> _walk_02Z_0 [label=L]
+		_walk_02Z_0 [shape=rect,label=<02Z<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_02Z_0 -> _walk_01C_0 [label=L]
 	}
 }

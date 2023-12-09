@@ -43,57 +43,28 @@ digraph G {
 		_ZCZ -> _DAX [color=red,label=R]
 	}
 
-	subgraph cluster_AAA {
-		label = "State machine starting at AAA"
+	subgraph cluster_states {
+		label = "State machine"
 		color = black
-		_walk_AAA_AAA_0 [shape=diamond,label=<AAA<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_AAA_AAA_0 -> _walk_AAA_ZAZ_0 [label=L]
-		_walk_AAA_AAA_0 -> _walk_AAA_DAX_0 [label=R,color=gray]
-		_walk_AAA_ZAZ_0 [shape=rect,label=<ZAZ<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_AAA_ZAZ_0 -> _walk_AAA_XAX_0 [label=L]
-		_walk_AAA_ZAZ_0 -> _walk_AAA_DAX_0 [label=R,color=gray]
-		_walk_AAA_XAX_0 [shape=ellipse,label=<XAX<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_AAA_XAX_0 -> _walk_AAA_ZCZ_0 [label=L]
-		_walk_AAA_XAX_0 -> _walk_AAA_DAX_0 [label=R,color=gray]
-		_walk_AAA_ZCZ_0 [shape=rect,label=<ZCZ<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_AAA_ZCZ_0 -> _walk_AAA_XBX_0 [label=L]
-		_walk_AAA_ZCZ_0 -> _walk_AAA_DAX_0 [label=R,color=gray]
-		_walk_AAA_XBX_0 [shape=ellipse,label=<XBX<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_AAA_XBX_0 -> _walk_AAA_XAX_0 [label=L]
-		_walk_AAA_XBX_0 -> _walk_AAA_DAX_0 [label=R,color=gray]
-		_walk_AAA_DAX_0 [shape=ellipse,label=<DAX<br/><font color="dodgerblue"><b>L</b></font>>,color=gray]
-	}
-
-	subgraph cluster_ABA {
-		label = "State machine starting at ABA"
-		color = black
-		_walk_ABA_ABA_0 [shape=diamond,label=<ABA<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_ABA_ABA_0 -> _walk_ABA_XDX_0 [label=L]
-		_walk_ABA_ABA_0 -> _walk_ABA_DAX_0 [label=R,color=gray]
-		_walk_ABA_XDX_0 [shape=ellipse,label=<XDX<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_ABA_XDX_0 -> _walk_ABA_ZBZ_0 [label=L]
-		_walk_ABA_XDX_0 -> _walk_ABA_DAX_0 [label=R,color=gray]
-		_walk_ABA_ZBZ_0 [shape=rect,label=<ZBZ<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_ABA_ZBZ_0 -> _walk_ABA_XDX_0 [label=L]
-		_walk_ABA_ZBZ_0 -> _walk_ABA_DAX_0 [label=R,color=gray]
-		_walk_ABA_DAX_0 [shape=ellipse,label=<DAX<br/><font color="dodgerblue"><b>L</b></font>>,color=gray]
-	}
-
-	subgraph cluster_ACA {
-		label = "State machine starting at ACA"
-		color = black
-		_walk_ACA_ACA_0 [shape=diamond,label=<ACA<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_ACA_ACA_0 -> _walk_ACA_XEX_0 [label=L]
-		_walk_ACA_ACA_0 -> _walk_ACA_DAX_0 [label=R,color=gray]
-		_walk_ACA_XEX_0 [shape=ellipse,label=<XEX<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_ACA_XEX_0 -> _walk_ACA_ZBZ_0 [label=L]
-		_walk_ACA_XEX_0 -> _walk_ACA_DAX_0 [label=R,color=gray]
-		_walk_ACA_ZBZ_0 [shape=rect,label=<ZBZ<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_ACA_ZBZ_0 -> _walk_ACA_XDX_0 [label=L]
-		_walk_ACA_ZBZ_0 -> _walk_ACA_DAX_0 [label=R,color=gray]
-		_walk_ACA_XDX_0 [shape=ellipse,label=<XDX<br/><font color="dodgerblue"><b>L</b></font>>]
-		_walk_ACA_XDX_0 -> _walk_ACA_ZBZ_0 [label=L]
-		_walk_ACA_XDX_0 -> _walk_ACA_DAX_0 [label=R,color=gray]
-		_walk_ACA_DAX_0 [shape=ellipse,label=<DAX<br/><font color="dodgerblue"><b>L</b></font>>,color=gray]
+		_walk_AAA_0 [shape=diamond,label=<AAA<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_AAA_0 -> _walk_ZAZ_0 [label=L]
+		_walk_ZAZ_0 [shape=rect,label=<ZAZ<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_ZAZ_0 -> _walk_XAX_0 [label=L]
+		_walk_XAX_0 [shape=ellipse,label=<XAX<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_XAX_0 -> _walk_ZCZ_0 [label=L]
+		_walk_ZCZ_0 [shape=rect,label=<ZCZ<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_ZCZ_0 -> _walk_XBX_0 [label=L]
+		_walk_XBX_0 [shape=ellipse,label=<XBX<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_XBX_0 -> _walk_XAX_0 [label=L]
+		_walk_ABA_0 [shape=diamond,label=<ABA<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_ABA_0 -> _walk_XDX_0 [label=L]
+		_walk_XDX_0 [shape=ellipse,label=<XDX<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_XDX_0 -> _walk_ZBZ_0 [label=L]
+		_walk_ZBZ_0 [shape=rect,label=<ZBZ<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_ZBZ_0 -> _walk_XDX_0 [label=L]
+		_walk_ACA_0 [shape=diamond,label=<ACA<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_ACA_0 -> _walk_XEX_0 [label=L]
+		_walk_XEX_0 [shape=ellipse,label=<XEX<br/><font color="dodgerblue"><b>L</b></font>>]
+		_walk_XEX_0 -> _walk_ZBZ_0 [label=L]
 	}
 }

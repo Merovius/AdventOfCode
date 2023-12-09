@@ -12,7 +12,6 @@ import (
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"github.com/Merovius/AdventOfCode/internal/math"
-	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
@@ -251,51 +250,61 @@ func WriteDot(w io.Writer, net Network) error {
 		n string
 		k int
 	}
+	fmt.Fprintln(wc)
+	fmt.Fprintln(wc, "\tsubgraph cluster_states {")
+	fmt.Fprintln(wc, "\t\tlabel = \"State machine\"")
+	fmt.Fprintln(wc, "\t\tcolor = black")
+	printed := make(map[any]bool)
+	printState := func(s state, attr string) {
+		if printed[s] {
+			return
+		}
+		printed[s] = true
+		shape := "ellipse"
+		if strings.HasSuffix(s.n, "A") {
+			shape = "diamond"
+		} else if strings.HasSuffix(s.n, "Z") {
+			shape = "rect"
+		}
+		fmt.Fprintf(wc,
+			"\t\t_walk_%s_%d [shape=%s,label=<%s<br/>%s<font color=\"dodgerblue\"><b>%s</b></font>%s>%s]\n",
+			s.n,
+			s.k,
+			shape,
+			s.n,
+			string(prog[:s.k]),
+			string(prog[s.k:s.k+1]),
+			string(prog[s.k+1:]),
+			attr,
+		)
+	}
+	printEdge := func(from, to state, attr string) {
+		type edge struct {
+			from state
+			to   state
+			attr string
+		}
+		e := edge{from, to, attr}
+		if printed[e] {
+			return
+		}
+		printed[e] = true
+		fmt.Fprintf(wc,
+			"\t\t_walk_%s_%d -> _walk_%s_%d [%s]\n",
+			from.n,
+			from.k,
+			to.n,
+			to.k,
+			attr,
+		)
+	}
 	for _, n := range net.Nodes {
 		if !strings.HasSuffix(n.Name, "A") {
 			continue
 		}
-		fmt.Fprintln(wc)
-		fmt.Fprintf(wc, "\tsubgraph cluster_%s {\n", n.Name)
-		fmt.Fprintf(wc, "\t\tlabel = %q\n", "State machine starting at "+n.Name)
-		fmt.Fprintln(wc, "\t\tcolor = black")
-		start := n.Name
-		printState := func(s state, attr string) {
-			shape := "ellipse"
-			if strings.HasSuffix(s.n, "A") {
-				shape = "diamond"
-			} else if strings.HasSuffix(s.n, "Z") {
-				shape = "rect"
-			}
-			fmt.Fprintf(wc,
-				"\t\t_walk_%s_%s_%d [shape=%s,label=<%s<br/>%s<font color=\"dodgerblue\"><b>%s</b></font>%s>%s]\n",
-				start,
-				s.n,
-				s.k,
-				shape,
-				s.n,
-				string(prog[:s.k]),
-				string(prog[s.k:s.k+1]),
-				string(prog[s.k+1:]),
-				attr,
-			)
-		}
-		printEdge := func(from, to state, attr string) {
-			fmt.Fprintf(wc,
-				"\t\t_walk_%s_%s_%d -> _walk_%s_%s_%d [%s]\n",
-				start,
-				from.n,
-				from.k,
-				start,
-				to.n,
-				to.k,
-				attr,
-			)
-		}
 		var (
-			N     int
-			seen  = make(map[state]int)
-			extra = make(set.Set[state])
+			N    int
+			seen = make(map[state]int)
 		)
 	loop:
 		for {
@@ -309,31 +318,17 @@ func WriteDot(w io.Writer, net Network) error {
 				printState(s, "")
 				switch i {
 				case L:
-					ss := state{n.Left, (j + 1) % len(prog)}
-					printEdge(s, ss, "label=L")
-					ss.n = n.Right
-					printEdge(s, ss, "label=R,color=gray")
-					extra.Add(ss)
+					printEdge(s, state{n.Left, (j + 1) % len(prog)}, "label=L")
 					n = m[n.Left]
 				case R:
-					ss := state{n.Right, (j + 1) % len(prog)}
-					printEdge(s, ss, "label=R")
-					ss.n = n.Left
-					printEdge(s, ss, "label=L,color=gray")
-					extra.Add(state{n.Left, (j + 1) % len(prog)})
+					printEdge(s, state{n.Right, (j + 1) % len(prog)}, "label=R")
 					n = m[n.Right]
 				}
 				N++
 			}
 		}
-		for s := range extra {
-			if _, ok := seen[s]; !ok {
-				printState(s, ",color=gray")
-			}
-		}
-
-		fmt.Fprintln(wc, "\t}")
 	}
+	fmt.Fprintln(wc, "\t}")
 	fmt.Fprintln(wc, "}")
 	return wc.Close()
 }
