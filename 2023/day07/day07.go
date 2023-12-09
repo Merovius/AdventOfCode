@@ -86,7 +86,7 @@ const (
 )
 
 // handType maps the highest two counts of card values to the type of hand.
-var handType = map[[2]int]Type{
+var handType = map[[2]uint8]Type{
 	{5, 0}: FiveOfAKind,
 	{4, 1}: FourOfAKind,
 	{3, 2}: FullHouse,
@@ -101,11 +101,19 @@ var handType = map[[2]int]Type{
 func (h Hand) Value(joker bool) uint32 {
 	// Find the two most common card values. They determine the hand type.
 	var (
-		njokers int
-		maxC    [2]int
+		njokers uint8
+		counts  [13]uint8
+		maxC    [2]uint8
+		ord     = Order1
 	)
-	for i := 0; i < len(Order2); i++ {
-		c := bytes.Count(h[:], []byte{Order2[i]})
+	if joker {
+		ord = Order2
+	}
+	for i, b := range h {
+		h[i] = uint8(strings.IndexByte(ord, b))
+		counts[h[i]]++
+	}
+	for i, c := range counts {
 		if joker && i == 0 {
 			njokers = c
 			continue
@@ -118,12 +126,10 @@ func (h Hand) Value(joker bool) uint32 {
 			}
 		}
 	}
-	ord := Order1
 	if joker {
 		// jokers should always boost the most common card value, as we don't
 		// have straights
 		maxC[0] += njokers
-		ord = Order2
 	}
 
 	// Encode the card values, in lexicographic order, as a Base 13 integer.
@@ -132,7 +138,7 @@ func (h Hand) Value(joker bool) uint32 {
 	v := uint32(handType[maxC])
 	for _, b := range h {
 		v *= uint32(len(ord))
-		v += uint32(strings.IndexByte(ord, b))
+		v += uint32(b)
 	}
 	return v
 }

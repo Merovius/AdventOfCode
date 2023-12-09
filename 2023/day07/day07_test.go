@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"math/rand"
 	"testing"
 )
 
@@ -35,4 +36,46 @@ func Test(t *testing.T) {
 			}
 		})
 	}
+}
+
+func BenchmarkParse(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Parse(input)
+	}
+}
+
+func BenchmarkPart1(b *testing.B) {
+	b.Run("WithParse", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			in, _ := Parse(input)
+			Part1(in)
+		}
+	})
+	in, _ := Parse(input)
+	b.Run("WithoutParse", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			b.StopTimer()
+			rand.Shuffle(len(in), func(i, j int) { in[i], in[j] = in[j], in[i] })
+			b.StartTimer()
+			Part1(in)
+		}
+	})
+}
+
+func BenchmarkPart2(b *testing.B) {
+	b.Run("WithParse", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			in, _ := Parse(input)
+			Part2(in)
+		}
+	})
+	in, _ := Parse(input)
+	b.Run("WithoutParse", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			b.StopTimer()
+			rand.Shuffle(len(in), func(i, j int) { in[i], in[j] = in[j], in[i] })
+			b.StartTimer()
+			Part2(in)
+		}
+	})
 }
