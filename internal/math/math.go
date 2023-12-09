@@ -150,18 +150,25 @@ func LCM[T constraints.Integer](a, b T) T {
 	return (a / g) * b
 }
 
-// CRT solves the Chinese Remainder Theorem. The return value satisfies
+// ChineseRemainder solves the Chinese Remainder Theorem. The return value
+// satisfies
 //
-//	x % m == a
-//	x % n == b
+//	x = a (mod m)
+//	x = b (mod n)
 //	0 <= x < LCM(m, n)
 //
 // If such an x exists.
 //
-// It panics, unless 0≤a<m, 0≤b<n, m>0, n>0.
-func CRT[T constraints.Integer](a, b, m, n T) (x T, ok bool) {
-	if a < 0 || a >= m || b < 0 || b >= n || m <= 0 || n <= 0 {
-		panic("invalid inputs to CRT")
+// It panics if m≤0 or n≤0.
+func ChineseRemainder[T constraints.Integer](a, b, m, n T) (x T, ok bool) {
+	if m <= 0 || n <= 0 {
+		panic("invalid inputs to ChineseRemainder")
+	}
+	if a < 0 || a >= m {
+		_, a = Div(a, m)
+	}
+	if b < 0 || b >= n {
+		_, b = Div(b, n)
 	}
 
 	g, u, v := GCD(m, n)
@@ -169,11 +176,21 @@ func CRT[T constraints.Integer](a, b, m, n T) (x T, ok bool) {
 		return 0, false
 	}
 	M := (m / g) * n
-	x = (a * v * (n / g)) % M
-	x += (b * u * (m / g)) % M
-	x %= M
-	if x < 0 {
-		x += M
-	}
+	x = (a * v * (n / g))
+	x += (b * u * (m / g))
+	_, x = Div(x, M)
 	return x, true
+}
+
+// Div returns p, q such that a = b•q+r, with 0≤r<|b|. It panics if b is 0.
+func Div[T constraints.Integer](a, b T) (q, r T) {
+	q, r = a/b, a%b
+	if r < 0 {
+		if b < 0 {
+			q, r = q+1, r-b
+		} else {
+			q, r = q-1, r+b
+		}
+	}
+	return q, r
 }

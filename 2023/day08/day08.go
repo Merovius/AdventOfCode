@@ -199,7 +199,7 @@ func mergeCycles(a, b cycle) (cycle, bool) {
 	if b.length == 0 {
 		return mergeCycles(b, a)
 	}
-	x, ok := math.CRT(a.offset%a.length, b.offset%b.length, a.length, b.length)
+	x, ok := math.ChineseRemainder(a.offset, b.offset, a.length, b.length)
 	if !ok {
 		return cycle{}, false
 	}

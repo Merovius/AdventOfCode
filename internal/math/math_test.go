@@ -60,7 +60,7 @@ func gcdBig[T constraints.Integer](a, b T) (z, x, y T) {
 	return T(zb.Int64()), T(xb.Int64()), T(yb.Int64())
 }
 
-func TestCRT(t *testing.T) {
+func TestChineseRemainder(t *testing.T) {
 	tcs := []struct {
 		a  int
 		b  int
@@ -73,8 +73,8 @@ func TestCRT(t *testing.T) {
 		{8, 2, 15, 7, 23, true},
 	}
 	for _, tc := range tcs {
-		if x, ok := CRT(tc.a, tc.b, tc.m, tc.n); x != tc.x || ok != tc.ok {
-			t.Errorf("CRT(%d, %d, %d, %d) = %d, %v, want %d, %v", tc.a, tc.b, tc.m, tc.n, x, ok, tc.x, tc.ok)
+		if x, ok := ChineseRemainder(tc.a, tc.b, tc.m, tc.n); x != tc.x || ok != tc.ok {
+			t.Errorf("ChineseRemainder(%d, %d, %d, %d) = %d, %v, want %d, %v", tc.a, tc.b, tc.m, tc.n, x, ok, tc.x, tc.ok)
 		}
 	}
 
@@ -83,10 +83,10 @@ func TestCRT(t *testing.T) {
 			for n := 1; n < 10; n++ {
 				for a := 0; a < m; a++ {
 					for b := 0; b < n; b++ {
-						x1, ok1 := CRT(a, b, m, n)
+						x1, ok1 := ChineseRemainder(a, b, m, n)
 						x2, ok2 := crtSlow(a, b, m, n)
 						if x1 != x2 || ok1 != ok2 {
-							t.Errorf("CRT(%d, %d, %d, %d) = %d, %v, want %d, %v", a, b, m, n, x1, ok1, x2, ok2)
+							t.Errorf("ChineseRemainder(%d, %d, %d, %d) = %d, %v, want %d, %v", a, b, m, n, x1, ok1, x2, ok2)
 						}
 					}
 				}
@@ -102,4 +102,18 @@ func crtSlow(a, b, m, n int) (int, bool) {
 		}
 	}
 	return 0, false
+}
+
+func TestDiv(t *testing.T) {
+	for a := -100; a < 100; a++ {
+		for b := -100; b < 100; b++ {
+			if b == 0 {
+				continue
+			}
+			q, r := Div(a, b)
+			if b*q+r != a || r < 0 || r >= Abs(b) {
+				t.Errorf("Div(%d, %d) = %d, %d and b*q+r = %d, want %d", a, b, q, r, b*q+r, a)
+			}
+		}
+	}
 }
