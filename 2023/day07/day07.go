@@ -52,14 +52,24 @@ func Part2(players []Player) int {
 }
 
 func winnings(players []Player, joker bool) int {
+	// The value of a hand fits into 22 bits. The index fits into 10 bits.
+	// So we can pack value and index into a uint32. By putting the value into
+	// the upper bits, sorting by that uint32 is ranking the players by value.
+	// This allows us to use slices.Sort, which doesn't use dynamic dispatch,
+	// speeding up sorting.
+	const (
+		idxBits = 10
+		idxMask = (1 << idxBits) - 1
+	)
 	vals := make([]uint32, len(players))
 	for i, p := range players {
-		vals[i] = p.Hand.Value(joker)
+		vals[i] = (p.Hand.Value(joker) << idxBits) | uint32(i)
 	}
-	slices.SortBy(players, vals)
+	slices.Sort(vals)
 	var total int
-	for r, p := range players {
-		total += (r + 1) * p.Bid
+	for r, v := range vals {
+		i := v & idxMask
+		total += (r + 1) * players[i].Bid
 	}
 	return total
 }
