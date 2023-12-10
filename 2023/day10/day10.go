@@ -210,9 +210,8 @@ func Part2(g *Grid) int {
 	// Determine the pipe shape of the start position
 	v := direction[loop[1].Sub(loop[0])]
 	v |= direction[loop[len(loop)-1].Sub(loop[0])]
-	g.Set(loop[0], v)
 
-	gr := NewGraph(g)
+	gr := NewGraph(g, loop[0], v)
 
 	// Do a depth-first search to determine the connected component of (0,0)
 	// (outside)
@@ -249,9 +248,12 @@ var walls = map[Cell][3][3]Wall{
 
 // NewGraph creates a 3-times scaled up version of g, where every cell is a 3x3
 // square with loop segments filled in as wall.
-func NewGraph(g *Grid) *Graph {
+func NewGraph(g *Grid, start grid.Pos, startVal Cell) *Graph {
 	big := grid.New[Wall](3*g.W, 3*g.H)
 	for p, v := range g.Cells {
+		if p == start {
+			v = startVal
+		}
 		p.Row *= 3
 		p.Col *= 3
 		for r, row := range walls[v] {

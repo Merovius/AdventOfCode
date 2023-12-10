@@ -48,3 +48,41 @@ func Test(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkPart1(b *testing.B) {
+	b.Run("WithParse", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			in, _ := Parse(input)
+			if Part1(in) != 6956 {
+				b.Fail()
+			}
+		}
+	})
+	in, _ := Parse(input)
+	b.Run("WithoutParse", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			if Part1(in) != 6956 {
+				b.Fail()
+			}
+		}
+	})
+}
+
+func BenchmarkPart2(b *testing.B) {
+	b.Run("WithParse", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			in, _ := Parse(input)
+			if Part2(in) != 455 {
+				b.Fail()
+			}
+		}
+	})
+	in, _ := Parse(input)
+	b.Run("WithoutParse", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			if Part2(in) != 455 {
+				b.Fail()
+			}
+		}
+	})
+}
