@@ -271,7 +271,7 @@ type Edge struct {
 }
 
 func (g *Graph) Edges(p grid.Pos) []Edge {
-	var edges []Edge
+	edges := make([]Edge, 0, 4)
 	for _, q := range g.g.Neigh4(p) {
 		if !g.g.At(q) {
 			edges = append(edges, Edge{p, q})

@@ -122,7 +122,7 @@ func (g *Grid[T]) Valid(p Pos) bool {
 }
 
 func (g *Grid[T]) Neigh4(p Pos) []Pos {
-	var out []Pos
+	out := make([]Pos, 0, 4)
 	for _, δ := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
 		n := p.Add(Pos{δ[0], δ[1]})
 		if !g.Valid(n) {
