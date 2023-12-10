@@ -1,0 +1,9 @@
+1
+RRL
+
+AAA = (AAZ, AAZ)
+BAA = (AAZ, AAZ)
+CAA = (BBZ, BBZ)
+AAZ = (AAZ, AAZ)
+BBZ = (CCZ, BBZ)
+CCZ = (BBZ, CCZ)
