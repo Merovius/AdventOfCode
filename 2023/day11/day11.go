@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"io"
 	"log"
@@ -8,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/grid"
-	"github.com/Merovius/AdventOfCode/internal/interval"
+	"github.com/Merovius/AdventOfCode/internal/math"
 )
 
 func main() {
@@ -57,11 +58,15 @@ func Part2(in *Image) int {
 }
 
 func SumDistances(in *Image, age int) int {
-	var g []grid.Pos
-	for p := range grid.Find(in, Galaxy) {
-		g = append(g, p)
+	g := make([]grid.Pos, 0, 1024)
+	for r := range in.H {
+		for c := range in.W {
+			if p := (grid.Pos{r, c}); in.At(p) == Galaxy {
+				g = append(g, p)
+			}
+		}
 	}
-	var emptyRows []int
+	emptyRows := make([]int, 0, in.H)
 	for r := range in.H {
 		empty := true
 		for c := range in.W {
@@ -74,7 +79,7 @@ func SumDistances(in *Image, age int) int {
 			emptyRows = append(emptyRows, r)
 		}
 	}
-	var emptyCols []int
+	emptyCols := make([]int, 0, in.W)
 	for c := range in.W {
 		empty := true
 		for r := range in.H {
@@ -91,24 +96,28 @@ func SumDistances(in *Image, age int) int {
 	var sum int
 	for i, g1 := range g {
 		for _, g2 := range g[i+1:] {
-			if g1 == g2 {
-				continue
-			}
-			ir := interval.MakeOC(g1.Row, g2.Row)
-			ic := interval.MakeOC(g1.Col, g2.Col)
-			δr, δc := ir.Len(), ic.Len()
-			for _, r := range emptyRows {
-				if ir.Contains(r) {
-					δr += age
-				}
-			}
-			for _, c := range emptyCols {
-				if ic.Contains(c) {
-					δc += age
-				}
-			}
+			// Galaxies are ordered by row first and column second.
+			// So g1.Row <= g2.Row
+			δr, δc := g2.Row-g1.Row, math.Abs(g2.Col-g1.Col)
+			i := search(emptyRows, g1.Row)
+			i = search(emptyRows[i:], g2.Row)
+			δr += age * i
+			i = search(emptyCols, min(g1.Col, g2.Col))
+			i = search(emptyCols[i:], max(g1.Col, g2.Col))
+			δc += age * i
 			sum += δr + δc
 		}
 	}
 	return sum
+}
+
+// search returns the smallest index i of s where s[i] > v.
+func search[E cmp.Ordered](s []E, v E) int {
+	// our slices are short, so linear search is faster than binary search.
+	for i, w := range s {
+		if w > v {
+			return i
+		}
+	}
+	return len(s)
 }
