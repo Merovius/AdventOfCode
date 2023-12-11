@@ -25,52 +25,52 @@ func main() {
 	fmt.Println("Part 2:", Part2(in))
 }
 
-func Parse(s string) (*Image, error) {
-	return grid.Read[Cell](strings.NewReader(s), ParseCell)
-}
-
-type Image = grid.Grid[Cell]
-
-type Cell bool
-
-const (
-	Empty  Cell = false
-	Galaxy Cell = true
-)
-
-func ParseCell(r rune) (Cell, error) {
-	switch r {
-	case '.':
-		return Empty, nil
-	case '#':
-		return Galaxy, nil
-	default:
-		return false, fmt.Errorf("invalid codepoint %q", r)
+func Parse(in string) (Input, error) {
+	g := make([]grid.Pos, 0, 1024)
+	var nrows, ncols int
+	for r := 0; len(in) > 0; r++ {
+		i := strings.IndexByte(in, '\n')
+		if i < 0 {
+			i = len(in)
+		}
+		l := in[:i]
+		ncols = len(l)
+		nrows++
+		var lastC int
+		for len(l) > 0 {
+			c := strings.IndexByte(l, '#')
+			if c < 0 {
+				break
+			}
+			g = append(g, grid.Pos{r, c + lastC})
+			lastC += c + 1
+			l = l[c+1:]
+		}
+		in = in[i+1:]
 	}
+	return Input{g, nrows, ncols}, nil
 }
 
-func Part1(in *Image) int {
+type Input struct {
+	Galaxies []grid.Pos
+	NRows    int
+	NCols    int
+}
+
+func Part1(in Input) int {
 	return SumDistances(in, 1)
 }
 
-func Part2(in *Image) int {
+func Part2(in Input) int {
 	return SumDistances(in, 999999)
 }
 
-func SumDistances(in *Image, age int) int {
-	g := make([]grid.Pos, 0, 1024)
-	for r := range in.H {
-		for c := range in.W {
-			if p := (grid.Pos{r, c}); in.At(p) == Galaxy {
-				g = append(g, p)
-			}
-		}
-	}
-	emptyRows := make([]int, 0, in.H)
-	for r := range in.H {
+func SumDistances(in Input, age int) int {
+	emptyRows := make([]int, 0, in.NRows)
+	for r := range in.NRows {
 		empty := true
-		for c := range in.W {
-			if in.At(grid.Pos{r, c}) == Galaxy {
+		for _, g := range in.Galaxies {
+			if g.Row == r {
 				empty = false
 				break
 			}
@@ -79,11 +79,11 @@ func SumDistances(in *Image, age int) int {
 			emptyRows = append(emptyRows, r)
 		}
 	}
-	emptyCols := make([]int, 0, in.W)
-	for c := range in.W {
+	emptyCols := make([]int, 0, in.NCols)
+	for c := range in.NCols {
 		empty := true
-		for r := range in.H {
-			if in.At(grid.Pos{r, c}) == Galaxy {
+		for _, g := range in.Galaxies {
+			if g.Col == c {
 				empty = false
 				break
 			}
@@ -94,8 +94,8 @@ func SumDistances(in *Image, age int) int {
 	}
 
 	var sum int
-	for i, g1 := range g {
-		for _, g2 := range g[i+1:] {
+	for i, g1 := range in.Galaxies {
+		for _, g2 := range in.Galaxies[i:] {
 			// Galaxies are ordered by row first and column second.
 			// So g1.Row <= g2.Row
 			δr, δc := g2.Row-g1.Row, math.Abs(g2.Col-g1.Col)
