@@ -27,12 +27,16 @@ func Test(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if got1 := Part1(in); got1 != tc.wantPart1 {
-				t.Errorf("Part1(…) = %v, want %v", got1, tc.wantPart1)
-			}
-			if got2 := Part2(in); got2 != tc.wantPart2 {
-				t.Errorf("Part2(…) = %v, want %v", got2, tc.wantPart2)
-			}
+			t.Run("Part1", func(t *testing.T) {
+				if got1 := Part1(in); got1 != tc.wantPart1 {
+					t.Errorf("Part1(…) = %v, want %v", got1, tc.wantPart1)
+				}
+			})
+			t.Run("Part2", func(t *testing.T) {
+				if got2 := Part2(in); got2 != tc.wantPart2 {
+					t.Errorf("Part2(…) = %v, want %v", got2, tc.wantPart2)
+				}
+			})
 		})
 	}
 }
