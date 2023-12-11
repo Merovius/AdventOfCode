@@ -53,6 +53,10 @@ type CO[T constraints.Signed] struct {
 	Max T
 }
 
+func MakeCO[T constraints.Signed](a, b T) CO[T] {
+	return CO[T]{min(a, b), max(a, b)}
+}
+
 func (i CO[T]) toCO() CO[T] {
 	return i
 }
@@ -85,7 +89,7 @@ func (i CO[T]) valid() bool {
 
 // Contains returns whether i contains v.
 func (i CO[T]) Contains(v T) bool {
-	return i.Min >= v && i.Max < v
+	return v >= i.Min && v < i.Max
 }
 
 // Intersect returns the intersection of i and j.
@@ -126,6 +130,10 @@ func (i CO[T]) String() string {
 type OC[T constraints.Signed] struct {
 	Min T
 	Max T
+}
+
+func MakeOC[T constraints.Signed](a, b T) OC[T] {
+	return OC[T]{min(a, b), max(a, b)}
 }
 
 func (i OC[T]) toCO() CO[T] {
@@ -180,8 +188,12 @@ type OO[T constraints.Signed] struct {
 	Max T
 }
 
+func MakeOO[T constraints.Signed](a, b T) OO[T] {
+	return OO[T]{min(a, b), max(a, b)}
+}
+
 func (i OO[T]) toCO() CO[T] {
-	return CO[T]{i.Min - 1, i.Max}
+	return CO[T]{i.Min + 1, i.Max}
 }
 
 // Empty returns if i is the empty interval.
@@ -222,7 +234,7 @@ func (i OO[T]) Union(j OO[T]) (OO[T], bool) {
 
 // String implements fmt.Stringer.
 func (i OO[T]) String() string {
-	return fmt.Sprintf("(%d,%d]", i.Min, i.Max)
+	return fmt.Sprintf("(%d,%d)", i.Min, i.Max)
 }
 
 // CC is a closed interval of T, that is [Min, Max]. Well-formed intervals have
@@ -230,6 +242,10 @@ func (i OO[T]) String() string {
 type CC[T constraints.Signed] struct {
 	Min T
 	Max T
+}
+
+func MakeCC[T constraints.Signed](a, b T) CC[T] {
+	return CC[T]{min(a, b), max(a, b)}
 }
 
 func (i CC[T]) toCO() CO[T] {
