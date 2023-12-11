@@ -67,35 +67,29 @@ func Part2(in Input) int {
 
 func SumDistances(in Input, age int) int {
 	emptyRows := make([]int, 0, in.NRows)
+rows:
 	for r := range in.NRows {
-		empty := true
 		for _, g := range in.Galaxies {
 			if g.Row == r {
-				empty = false
-				break
+				continue rows
 			}
 		}
-		if empty {
-			emptyRows = append(emptyRows, r)
-		}
+		emptyRows = append(emptyRows, r)
 	}
 	emptyCols := make([]int, 0, in.NCols)
+cols:
 	for c := range in.NCols {
-		empty := true
 		for _, g := range in.Galaxies {
 			if g.Col == c {
-				empty = false
-				break
+				continue cols
 			}
 		}
-		if empty {
-			emptyCols = append(emptyCols, c)
-		}
+		emptyCols = append(emptyCols, c)
 	}
 
 	var sum int
 	for i, g1 := range in.Galaxies {
-		for _, g2 := range in.Galaxies[i:] {
+		for _, g2 := range in.Galaxies[i+1:] {
 			// Galaxies are ordered by row first and column second.
 			// So g1.Row <= g2.Row
 			δr, δc := g2.Row-g1.Row, math.Abs(g2.Col-g1.Col)
