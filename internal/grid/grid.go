@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/Merovius/AdventOfCode/internal/math"
+	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 )
 
@@ -41,6 +42,19 @@ func (p Pos) Dist(q Pos) int {
 
 func (p Pos) String() string {
 	return fmt.Sprintf("(%d,%d)", p.Row, p.Col)
+}
+
+// Enum return a function suitable to pass to Read, that accepts any of opts
+// and turns it into its position in that list.
+func Enum[T constraints.Integer](opts ...rune) func(rune) (T, error) {
+	return func(r rune) (T, error) {
+		for i, v := range opts {
+			if v == r {
+				return T(i), nil
+			}
+		}
+		return *new(T), fmt.Errorf("invalid rune %q")
+	}
 }
 
 type Grid[T any] struct {
