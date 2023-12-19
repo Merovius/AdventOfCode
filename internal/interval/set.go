@@ -2,16 +2,23 @@ package interval
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/math"
 	"golang.org/x/exp/constraints"
-	"golang.org/x/exp/slices"
 )
 
 // Set is a set of T, built out of intervals. The zero value is an empty set.
 type Set[I Interval[T], T constraints.Signed] struct {
 	set set[T]
+}
+
+// Clone returns a copy of s.
+func (s *Set[I, T]) Clone() *Set[I, T] {
+	return &Set[I, T]{
+		set: set[T]{slices.Clone(s.set.s)},
+	}
 }
 
 // Contains returns whether s contains v.

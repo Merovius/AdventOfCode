@@ -66,7 +66,7 @@ func (i CO[T]) toOC() OC[T] {
 }
 
 func (i CO[T]) toOO() OO[T] {
-	return OO[T]{i.Min + 1, i.Max}
+	return OO[T]{i.Min - 1, i.Max}
 }
 
 func (i CO[T]) toCC() CC[T] {
