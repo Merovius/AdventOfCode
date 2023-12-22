@@ -11,6 +11,7 @@ type Func func(string) ([]string, error)
 
 // Split into blocks, separated by empty lines.
 func Blocks(s string) ([]string, error) {
+	s = strings.Trim(s, "\n")
 	if len(s) == 0 {
 		return nil, errors.New("split.Blocks: empty input")
 	}
@@ -27,6 +28,7 @@ func Fields(s string) ([]string, error) {
 
 // Split into lines.
 func Lines(s string) ([]string, error) {
+	s = strings.Trim(s, "\n")
 	if len(s) == 0 {
 		return nil, errors.New("split.Lines: empty input")
 	}
