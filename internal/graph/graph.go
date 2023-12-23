@@ -105,3 +105,51 @@ func makePath[N comparable, E any](start, end N, from func(E) N, prev map[N]E) [
 	}
 	return out
 }
+
+// Dense is a weighted graph represented by an adjacency matrix.
+// It implements Weighted[int, [2]int, W].
+type Dense[W constraints.Integer] struct {
+	N int // Number of nodes
+	W []W // Weight of edge i->j at i•N+j
+}
+
+// NewDense creates a Dense graph with n nodes.
+func NewDense[W constraints.Integer](n int) *Dense[W] {
+	g := &Dense[W]{
+		N: n,
+		W: make([]W, n*n),
+	}
+	var _ Weighted[int, [2]int, W] = g
+	return g
+}
+
+// Edges returns the non-zero edges adjacent to i.
+func (g *Dense[W]) Edges(i int) [][2]int {
+	e := make([][2]int, 0, g.N)
+	for j, w := range g.W[g.N*i : g.N*i+g.N] {
+		if w != 0 {
+			e = append(e, [2]int{i, j})
+		}
+	}
+	return e
+}
+
+// From returns e[0].
+func (g *Dense[W]) From(e [2]int) int {
+	return e[0]
+}
+
+// From returns e[1].
+func (g *Dense[W]) To(e [2]int) int {
+	return e[1]
+}
+
+// Weight returns the weight of e.
+func (g *Dense[W]) Weight(e [2]int) W {
+	return g.W[g.N*e[0]+e[1]]
+}
+
+// SetWeight sets the weight of i->j to w.
+func (g *Dense[W]) SetWeight(i, j int, w W) {
+	g.W[g.N*i+j] = w
+}

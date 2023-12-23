@@ -32,3 +32,16 @@ func WalkDepthFirst[N comparable, E any](g Graph[N, E], start N) iter.Seq[N] {
 		}
 	}
 }
+
+// EdgeSeq is like Edges, but returns an iterator.
+func (g *Dense[T]) EdgeSeq(i int) iter.Seq[[2]int] {
+	return func(yield func([2]int) bool) {
+		for j, w := range g.W[g.N*i : g.N*i+g.N] {
+			if w != 0 {
+				if !yield([2]int{i, j}) {
+					return
+				}
+			}
+		}
+	}
+}
