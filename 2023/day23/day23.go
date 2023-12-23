@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/container"
+	"github.com/Merovius/AdventOfCode/internal/graph"
 	"github.com/Merovius/AdventOfCode/internal/grid"
-	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
@@ -47,29 +47,37 @@ const (
 type Grid = grid.Grid[Cell]
 
 func Part1(g *Grid) int {
-	edges := MakeGraph(g)
-	start := grid.Pos{0, 1}
-	end := grid.Pos{g.H - 1, g.W - 2}
-
-	return LongestPath(g, edges, start, end)
+	return LongestPath(MakeGraph(g))
 }
 
 func Part2(g *Grid) int {
-	edges := MakeGraph(g)
-	for _, es := range edges {
-		for e := range es {
-			e.To, e.From = e.From, e.To
-			edges[e.From].Add(e)
+	G := MakeGraph(g)
+	for i := range G.N {
+		for _, e := range G.Edges(i) {
+			G.SetWeight(G.To(e), G.From(e), G.Weight(e))
 		}
 	}
-	start := grid.Pos{0, 1}
-	end := grid.Pos{g.H - 1, g.W - 2}
-
-	return LongestPath(g, edges, start, end)
+	return LongestPath(G)
 }
 
-func MakeGraph(g *Grid) map[grid.Pos]set.Set[Edge] {
-	edges := make(map[grid.Pos]set.Set[Edge])
+type Graph struct {
+	*graph.Dense[int]
+	Nodes []grid.Pos
+}
+
+// MakeGraph creates a dense graph from g, where nodes are crossings (as well
+// as the start and finish node) and edge-weights are the length of path
+// segments between crossings.
+//
+// The nodes are sorted by row first and column second.
+func MakeGraph(g *Grid) *Graph {
+	var nodes []grid.Pos
+	idx := make(map[grid.Pos]int)
+	add := func(p grid.Pos) {
+		idx[p] = len(nodes)
+		nodes = append(nodes, p)
+	}
+	add(grid.Pos{0, 1})
 
 	// find all crossings
 	for p, c := range g.Cells {
@@ -83,28 +91,32 @@ func MakeGraph(g *Grid) map[grid.Pos]set.Set[Edge] {
 			}
 			n++
 			if n > 2 {
-				edges[p] = make(set.Set[Edge])
+				add(p)
 				break
 			}
 		}
 	}
-	edges[grid.Pos{0, 1}] = make(set.Set[Edge])
-	edges[grid.Pos{g.H - 1, g.W - 2}] = make(set.Set[Edge])
+	add(grid.Pos{g.H - 1, g.W - 2})
+
+	G := &Graph{
+		Dense: graph.NewDense[int](len(nodes)),
+		Nodes: nodes,
+	}
 
 	type node struct {
-		p     grid.Pos // current node
+		p     grid.Pos // current cell
 		prev  grid.Pos // node this one was reached from
-		cross grid.Pos // last crossing seen
+		cross int      // last crossing seen
 		n     int      // steps since the last crossing
 	}
 	var q container.FIFO[node]
-	for n := range edges {
-		q.Push(node{n, n, n, 0})
+	for i, n := range nodes {
+		q.Push(node{n, n, i, 0})
 	}
 	for q.Len() > 0 {
 		n := q.Pop()
-		if _, ok := edges[n.p]; ok && n.p != n.cross {
-			edges[n.cross].Add(Edge{n.cross, n.p, n.n})
+		if i, ok := idx[n.p]; ok && n.p != G.Nodes[n.cross] {
+			G.SetWeight(n.cross, i, n.n)
 			continue
 		}
 		for c, δ := range Δ {
@@ -113,7 +125,7 @@ func MakeGraph(g *Grid) map[grid.Pos]set.Set[Edge] {
 			}
 		}
 	}
-	return edges
+	return G
 }
 
 var Δ = map[Cell]grid.Pos{
@@ -129,27 +141,28 @@ type Edge struct {
 	N    int
 }
 
-func LongestPath(g *Grid, edges map[grid.Pos]set.Set[Edge], from, to grid.Pos) int {
+func LongestPath(g *Graph) int {
 	type node struct {
-		l *list[grid.Pos]
+		l *list[int]
 		n int
 	}
 	var (
 		q       container.LIFO[node]
 		longest int = math.MinInt
+		to          = g.N - 1
 	)
-	q.Push(node{Push(nil, from), 0})
+	q.Push(node{Push(nil, 0), 0})
 	for q.Len() > 0 {
 		n := q.Pop()
 		if n.l.head == to {
 			longest = max(longest, n.n)
 			continue
 		}
-		for e := range edges[n.l.head] {
-			if n.l.Contains(e.To) {
+		for e := range g.EdgeSeq(n.l.head) {
+			if n.l.Contains(g.To(e)) {
 				continue
 			}
-			q.Push(node{Push(n.l, e.To), n.n + e.N})
+			q.Push(node{Push(n.l, g.To(e)), n.n + g.Weight(e)})
 		}
 	}
 	return longest
