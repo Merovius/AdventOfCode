@@ -1,6 +1,8 @@
 package graph
 
 import (
+	"fmt"
+
 	"github.com/Merovius/AdventOfCode/internal/container"
 	"golang.org/x/exp/constraints"
 )
@@ -108,13 +110,13 @@ func makePath[N comparable, E any](start, end N, from func(E) N, prev map[N]E) [
 
 // Dense is a weighted graph represented by an adjacency matrix.
 // It implements Weighted[int, [2]int, W].
-type Dense[W constraints.Integer] struct {
+type Dense[W constraints.Integer | constraints.Float] struct {
 	N int // Number of nodes
 	W []W // Weight of edge i->j at i•N+j
 }
 
 // NewDense creates a Dense graph with n nodes.
-func NewDense[W constraints.Integer](n int) *Dense[W] {
+func NewDense[W constraints.Integer | constraints.Float](n int) *Dense[W] {
 	g := &Dense[W]{
 		N: n,
 		W: make([]W, n*n),
@@ -152,4 +154,64 @@ func (g *Dense[W]) Weight(e [2]int) W {
 // SetWeight sets the weight of i->j to w.
 func (g *Dense[W]) SetWeight(i, j int, w W) {
 	g.W[g.N*i+j] = w
+}
+
+// Sparse is a weighted graph represented by an adjacency list.
+// It implements Weighted[int, [2]int, W].
+type Sparse[W constraints.Integer | constraints.Float] struct {
+	N int
+
+	edges [][]sparseEdge[W]
+}
+
+func NewSparse[W constraints.Integer | constraints.Float](n int) *Sparse[W] {
+	g := &Sparse[W]{n, make([][]sparseEdge[W], n)}
+	var _ Weighted[int, [2]int, W] = g
+	return g
+}
+
+type sparseEdge[W any] struct {
+	i int
+	w W
+}
+
+// Edges returns the edges adjacent to i. The returned slice must not be
+// modified.
+func (g *Sparse[W]) Edges(i int) [][2]int {
+	out := make([][2]int, len(g.edges[i]))
+	for j, e := range g.edges[i] {
+		out[j] = [2]int{i, e.i}
+	}
+	return out
+}
+
+// From returns e[0].
+func (g *Sparse[W]) From(e [2]int) int {
+	return e[0]
+}
+
+// To returns e[1].
+func (g *Sparse[W]) To(e [2]int) int {
+	return e[1]
+}
+
+// Weight returns the weight of e.
+func (g *Sparse[W]) Weight(e [2]int) W {
+	for _, f := range g.edges[e[0]] {
+		if f.i == e[1] {
+			return f.w
+		}
+	}
+	panic(fmt.Errorf("no edge from %d to %d", e[0], e[1]))
+}
+
+// SetWeight sets the weight of i->j to w.
+func (g *Sparse[W]) SetWeight(i, j int, w W) {
+	for k, e := range g.edges[i] {
+		if e.i == j {
+			g.edges[i][k].w = w
+			return
+		}
+	}
+	g.edges[i] = append(g.edges[i], sparseEdge[W]{j, w})
 }
