@@ -135,48 +135,45 @@ var Δ = map[Cell]grid.Pos{
 	SlopeL: grid.Pos{0, -1},
 }
 
-type Edge struct {
-	From grid.Pos
-	To   grid.Pos
-	N    int
-}
-
 func LongestPath(g *Graph) int {
+	if g.N > 64 {
+		panic("can only handle up to 64 nodes")
+	}
 	type node struct {
-		l *list[int]
-		n int
+		i    int // index of current node
+		seen Set // set of all nodes visited in this path
+		n    int // length of this path
 	}
 	var (
 		q       container.LIFO[node]
 		longest int = math.MinInt
-		to          = g.N - 1
+		goal        = g.N - 1
 	)
-	q.Push(node{Push(nil, 0), 0})
+	q.Push(node{0, Set(0).Add(0), 0})
 	for q.Len() > 0 {
 		n := q.Pop()
-		if n.l.head == to {
+		if n.i == goal {
 			longest = max(longest, n.n)
 			continue
 		}
-		for e := range g.EdgeSeq(n.l.head) {
-			if n.l.Contains(g.To(e)) {
+		for e := range g.EdgeSeq(n.i) {
+			to := g.To(e)
+			if n.seen.Contains(to) {
 				continue
 			}
-			q.Push(node{Push(n.l, g.To(e)), n.n + g.Weight(e)})
+			q.Push(node{to, n.seen.Add(to), n.n + g.Weight(e)})
 		}
 	}
 	return longest
 }
 
-type list[E comparable] struct {
-	head E
-	tail *list[E]
+// Set is a subset of the range [0,64). The zero value represents the empty set.
+type Set uint64
+
+func (s Set) Add(i int) Set {
+	return s | (1 << i)
 }
 
-func Push[E comparable](l *list[E], e E) *list[E] {
-	return &list[E]{e, l}
-}
-
-func (l *list[E]) Contains(e E) bool {
-	return l != nil && (l.head == e || l.tail.Contains(e))
+func (s Set) Contains(i int) bool {
+	return s&(1<<i) != 0
 }
