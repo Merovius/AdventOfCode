@@ -61,7 +61,7 @@ func Part2(g *Grid) int {
 }
 
 type Graph struct {
-	*graph.Dense[int]
+	*graph.Sparse[int]
 	Nodes []grid.Pos
 }
 
@@ -99,8 +99,8 @@ func MakeGraph(g *Grid) *Graph {
 	add(grid.Pos{g.H - 1, g.W - 2})
 
 	G := &Graph{
-		Dense: graph.NewDense[int](len(nodes)),
-		Nodes: nodes,
+		Sparse: graph.NewSparse[int](len(nodes)),
+		Nodes:  nodes,
 	}
 
 	type node struct {
@@ -156,12 +156,12 @@ func LongestPath(g *Graph) int {
 			longest = max(longest, n.n)
 			continue
 		}
-		for e := range g.EdgeSeq(n.i) {
+		for e, w := range g.WeightedEdges(n.i) {
 			to := g.To(e)
 			if n.seen.Contains(to) {
 				continue
 			}
-			q.Push(node{to, n.seen.Add(to), n.n + g.Weight(e)})
+			q.Push(node{to, n.seen.Add(to), n.n + w})
 		}
 	}
 	return longest
