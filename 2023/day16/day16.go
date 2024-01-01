@@ -191,13 +191,18 @@ func Energize(g *Grid, b Beam) int {
 		q container.LIFO[Beam]
 		// seen maps a position to a bit set of the direction we've seen beams
 		// pass through it.
-		seen = make(map[grid.Pos]Direction)
+		seen = grid.New[Direction](g.W, g.H)
+		n    int
 	)
 	push := func(b Beam) {
-		if seen[b.p]&b.d != 0 || !g.Valid(b.p) {
+		if !seen.Valid(b.p) || seen.At(b.p)&b.d != 0 {
 			return
 		}
-		seen[b.p] |= b.d
+		s := seen.At(b.p)
+		if s == 0 {
+			n++
+		}
+		seen.Set(b.p, s|b.d)
 		q.Push(b)
 	}
 	push(b)
@@ -207,5 +212,5 @@ func Energize(g *Grid, b Beam) int {
 			push(Beam{d.Of(b.p), d})
 		}
 	}
-	return len(seen)
+	return n
 }
