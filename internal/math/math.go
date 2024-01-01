@@ -5,7 +5,11 @@
 // the standard library math package instead.
 package math
 
-import "golang.org/x/exp/constraints"
+import (
+	"math/big"
+
+	"golang.org/x/exp/constraints"
+)
 
 // Mathematical constants.
 const (
@@ -150,40 +154,88 @@ func LCM[T constraints.Integer](a, b T) T {
 	return (a / g) * b
 }
 
-// ChineseRemainder solves the Chinese Remainder Theorem. The return value
-// satisfies
+// ChineseRemainder solves the Chinese Remainder Theorem. The return values
+// satisfy
 //
 //	x = a (mod m)
 //	x = b (mod n)
-//	0 <= x < LCM(m, n)
+//	0 <= x < LCM(m, n) = M
 //
-// If such an x exists.
+// If such an x exists. Otherwise it returns a, m, false.
 //
-// It panics if m≤0 or n≤0.
-func ChineseRemainder[T constraints.Integer](a, b, m, n T) (x T, ok bool) {
-	if m <= 0 || n <= 0 {
+// It panics if m==0 or n==0.
+func ChineseRemainder[T constraints.Integer](a, m, b, n T) (x, M T, ok bool) {
+	if m == 0 || n == 0 {
 		panic("invalid inputs to ChineseRemainder")
 	}
+	aa, ma := a, m
+	if m < 0 {
+		m = -m
+	}
+	if n < 0 {
+		n = -n
+	}
 	if a < 0 || a >= m {
-		_, a = Div(a, m)
+		a = Mod(a, m)
 	}
 	if b < 0 || b >= n {
-		_, b = Div(b, n)
+		b = Mod(b, n)
 	}
 
 	g, u, v := GCD(m, n)
 	if (a-b)%g != 0 {
-		return 0, false
+		return aa, ma, false
 	}
-	M := (m / g) * n
+	M = (m / g) * n
 	x = (a * v * (n / g))
 	x += (b * u * (m / g))
-	_, x = Div(x, M)
-	return x, true
+	x = Mod(x, M)
+	return x, M, true
 }
 
-// Div returns p, q such that a = b•q+r, with 0≤r<|b|. It panics if b is 0.
-func Div[T constraints.Integer](a, b T) (q, r T) {
+// ChineseRemainderBig solves the Chinese Remainder Theorem for big.Int. It
+// calculates x such that
+//
+//	x = a (mod m)
+//	x = b (mod n)
+//	0 <= x < LCM(m, n) = M
+//
+// If such an x exists, and stores x and M in a and m. Otherwise, it returns
+// false and leaves the inputs unmodified.
+//
+// It panics if m or n is zero.
+func ChineseRemainderBig(a, m, b, n *big.Int) bool {
+	if m.Sign() == 0 || n.Sign() == 0 {
+		panic("invalid inputs to ChineseRemainderBig")
+	}
+
+	u, v := new(big.Int), new(big.Int)
+	g := new(big.Int).GCD(u, v, m, n)
+	if δ := new(big.Int).Sub(a, b); δ.Mod(δ, g).Sign() != 0 {
+		return false
+	}
+	M := new(big.Int).Div(m, g)
+	M = M.Mul(M, n)
+
+	// TODO: Can these be optimized? Maybe the definition of u and v already
+	// makes a*v*n divisible by g? Or something?
+	x := new(big.Int).Mul(a, v)
+	x = x.Mul(x, n)
+	y := new(big.Int).Mul(b, u)
+	y = y.Mul(y, m)
+
+	x = x.Add(x, y)
+	x = x.Div(x, g)
+	x = x.Mod(x, M)
+
+	a.Set(x)
+	m.Set(M)
+
+	return true
+}
+
+// DivMod returns p, q such that a = b•q+r, with 0≤r<|b|. It panics if b is 0.
+func DivMod[T constraints.Integer](a, b T) (q, r T) {
 	q, r = a/b, a%b
 	if r < 0 {
 		if b < 0 {
@@ -193,4 +245,18 @@ func Div[T constraints.Integer](a, b T) (q, r T) {
 		}
 	}
 	return q, r
+}
+
+// Div returns the quotient a/b for b != 0. Div implements Euclidean division;
+// see DivMod for details.
+func Div[T constraints.Integer](a, b T) T {
+	q, _ := DivMod(a, b)
+	return q
+}
+
+// Mod returns the modulus a%b for b != 0. Mod implements Euclidean division;
+// see DivMod for details.
+func Mod[T constraints.Integer](a, b T) T {
+	_, r := DivMod(a, b)
+	return r
 }

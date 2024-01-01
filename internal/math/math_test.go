@@ -63,18 +63,19 @@ func gcdBig[T constraints.Integer](a, b T) (z, x, y T) {
 func TestChineseRemainder(t *testing.T) {
 	tcs := []struct {
 		a  int
-		b  int
 		m  int
+		b  int
 		n  int
 		x  int
+		M  int
 		ok bool
 	}{
-		{2, 3, 3, 5, 8, true},
-		{8, 2, 15, 7, 23, true},
+		{2, 3, 3, 5, 8, 15, true},
+		{8, 15, 2, 7, 23, 105, true},
 	}
 	for _, tc := range tcs {
-		if x, ok := ChineseRemainder(tc.a, tc.b, tc.m, tc.n); x != tc.x || ok != tc.ok {
-			t.Errorf("ChineseRemainder(%d, %d, %d, %d) = %d, %v, want %d, %v", tc.a, tc.b, tc.m, tc.n, x, ok, tc.x, tc.ok)
+		if x, M, ok := ChineseRemainder(tc.a, tc.m, tc.b, tc.n); x != tc.x || M != tc.M || ok != tc.ok {
+			t.Errorf("ChineseRemainder(%d, %d, %d, %d) = %d, %d, %v, want %d, %d, %v", tc.a, tc.m, tc.b, tc.n, x, M, ok, tc.x, tc.M, tc.ok)
 		}
 	}
 
@@ -83,10 +84,10 @@ func TestChineseRemainder(t *testing.T) {
 			for n := 1; n < 10; n++ {
 				for a := 0; a < m; a++ {
 					for b := 0; b < n; b++ {
-						x1, ok1 := ChineseRemainder(a, b, m, n)
-						x2, ok2 := crtSlow(a, b, m, n)
+						x1, M1, ok1 := ChineseRemainder(a, m, b, n)
+						x2, M2, ok2 := crtSlow(a, m, b, n)
 						if x1 != x2 || ok1 != ok2 {
-							t.Errorf("ChineseRemainder(%d, %d, %d, %d) = %d, %v, want %d, %v", a, b, m, n, x1, ok1, x2, ok2)
+							t.Errorf("ChineseRemainder(%d, %d, %d, %d) = %d, %d, %v, want %d, %d %v", a, b, m, n, x1, M1, ok1, x2, M2, ok2)
 						}
 					}
 				}
@@ -95,24 +96,42 @@ func TestChineseRemainder(t *testing.T) {
 	})
 }
 
-func crtSlow(a, b, m, n int) (int, bool) {
-	for x := 0; x < m*n; x++ {
+func crtSlow(a, m, b, n int) (int, int, bool) {
+	M := LCM(m, n)
+	for x := 0; x < M; x++ {
 		if x%m == a && x%n == b {
-			return x, true
+			return x, M, true
 		}
 	}
-	return 0, false
+	return a, m, false
 }
 
-func TestDiv(t *testing.T) {
+func TestDivMod(t *testing.T) {
 	for a := -100; a < 100; a++ {
 		for b := -100; b < 100; b++ {
 			if b == 0 {
 				continue
 			}
-			q, r := Div(a, b)
+			q, r := DivMod(a, b)
 			if b*q+r != a || r < 0 || r >= Abs(b) {
-				t.Errorf("Div(%d, %d) = %d, %d and b*q+r = %d, want %d", a, b, q, r, b*q+r, a)
+				t.Errorf("DivMod(%d, %d) = %d, %d and b*q+r = %d, want %d", a, b, q, r, b*q+r, a)
+			}
+		}
+	}
+}
+
+func TestChineseRemaniderBig(t *testing.T) {
+	for a := int64(-10); a <= 10; a++ {
+		for m := int64(1); m <= 50; m++ {
+			for b := int64(-10); b <= 10; b++ {
+				for n := int64(1); n <= 50; n++ {
+					x1, m1, ok1 := ChineseRemainder(a, m, b, n)
+					a2, m2, b2, n2 := big.NewInt(a), big.NewInt(m), big.NewInt(b), big.NewInt(n)
+					ok2 := ChineseRemainderBig(a2, m2, b2, n2)
+					if ok1 != ok2 || a2.Int64() != x1 || m2.Int64() != m1 {
+						t.Fatalf("ChineseRemainderBig(%v, %v, %v, %v) = %v, %v, %v want %v, %v, %v", a, m, b, n, a2, m2, ok2, x1, m1, ok1)
+					}
+				}
 			}
 		}
 	}

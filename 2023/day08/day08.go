@@ -264,11 +264,10 @@ func mergeCycles(a, b cycle) (cycle, bool) {
 	if b.length == 0 {
 		return mergeCycles(b, a)
 	}
-	x, ok := math.ChineseRemainder(a.offset, b.offset, a.length, b.length)
+	x, M, ok := math.ChineseRemainder(a.offset, a.length, b.offset, b.length)
 	if !ok {
 		return cycle{}, false
 	}
-	M := math.LCM(a.length, b.length)
 	if m := max(a.offset, b.offset); x < m {
 		x += ((m - x) / M) * M
 		if x < m {
