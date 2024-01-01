@@ -9,7 +9,6 @@ import (
 
 	"github.com/Merovius/AdventOfCode/internal/container"
 	"github.com/Merovius/AdventOfCode/internal/grid"
-	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
@@ -100,7 +99,7 @@ func ParseCell(r rune) (Cell, error) {
 type Direction uint8
 
 const (
-	Up Direction = iota
+	Up Direction = (1 << iota)
 	Down
 	Left
 	Right
@@ -189,14 +188,16 @@ func (b Beam) String() string {
 
 func Energize(g *Grid, b Beam) int {
 	var (
-		q    container.LIFO[Beam]
-		seen = make(set.Set[Beam])
+		q container.LIFO[Beam]
+		// seen maps a position to a bit set of the direction we've seen beams
+		// pass through it.
+		seen = make(map[grid.Pos]Direction)
 	)
 	push := func(b Beam) {
-		if seen.Contains(b) || !g.Valid(b.p) {
+		if seen[b.p]&b.d != 0 || !g.Valid(b.p) {
 			return
 		}
-		seen.Add(b)
+		seen[b.p] |= b.d
 		q.Push(b)
 	}
 	push(b)
@@ -206,10 +207,5 @@ func Energize(g *Grid, b Beam) int {
 			push(Beam{d.Of(b.p), d})
 		}
 	}
-
-	energized := make(set.Set[grid.Pos])
-	for b := range seen {
-		energized.Add(b.p)
-	}
-	return len(energized)
+	return len(seen)
 }
