@@ -16,11 +16,15 @@ import (
 func main() {
 	log.SetFlags(0)
 
-	var cfgFile string
+	var (
+		cfgFile string
+		event   string
+	)
 	if ucd, err := os.UserConfigDir(); err == nil {
 		cfgFile = filepath.Join(ucd, "aoc", "config.json")
 	}
 	flag.StringVar(&cfgFile, "cfg", cfgFile, "config file to load")
+	flag.StringVar(&event, "event", "", "year to use (defaults to current year)")
 	flag.Parse()
 	if cfgFile == "" {
 		log.Fatal("-cfg is required")
@@ -33,6 +37,7 @@ func main() {
 	client := &aoc.Client{
 		SessionCookie: cfg.SessionCookie,
 		Cache:         aoc.DirCache(""),
+		Event:         event,
 	}
 	subcommands.Register(new(inputCmd), "")
 	subcommands.Register(new(boardCmd), "")
