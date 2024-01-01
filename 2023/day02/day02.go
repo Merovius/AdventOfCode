@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -17,8 +16,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	buf = bytes.TrimSpace(buf)
-	games, err := parse.Lines(parse.Struct[Game](
+	games, err := Parse(string(buf))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Part1:", Part1(games))
+	fmt.Println("Part2:", Part2(games))
+}
+
+func Parse(s string) ([]Game, error) {
+	return parse.Lines(parse.Struct[Game](
 		split.On(": "),
 		parse.Prefix("Game ", parse.Signed[int]),
 		parse.Slice(
@@ -32,23 +39,7 @@ func main() {
 				),
 			),
 		),
-	))(string(buf))
-	if err != nil {
-		log.Fatal(err)
-	}
-	var part1 int
-	for _, game := range games {
-		if err := IsPossible(game, 12, 13, 14); err == nil {
-			part1 += game.Index
-		}
-	}
-	fmt.Printf("Sum of index of possible games: %d\n", part1)
-	var part2 int
-	for _, game := range games {
-		r, g, b := MinCubes(game)
-		part2 += r * g * b
-	}
-	fmt.Printf("Power of all games: %d\n", part2)
+	))(s)
 }
 
 type Game struct {
@@ -59,6 +50,25 @@ type Game struct {
 type Cube struct {
 	N     int
 	Color string
+}
+
+func Part1(games []Game) int {
+	var n int
+	for _, game := range games {
+		if err := IsPossible(game, 12, 13, 14); err == nil {
+			n += game.Index
+		}
+	}
+	return n
+}
+
+func Part2(games []Game) int {
+	var n int
+	for _, game := range games {
+		r, g, b := MinCubes(game)
+		n += r * g * b
+	}
+	return n
 }
 
 func IsPossible(game Game, r, g, b int) error {
