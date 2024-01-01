@@ -23,7 +23,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var part1 = map[string]int{
+	fmt.Println("Part1:", Part1(lines))
+	fmt.Println("Part2:", Part2(lines))
+}
+
+func Parse(s string) ([]string, error) {
+	return parse.Lines(parse.String[string])(s)
+}
+
+func Part1(lines []string) int {
+	var pieces = map[string]int{
 		"0": 0,
 		"1": 1,
 		"2": 2,
@@ -35,13 +44,12 @@ func main() {
 		"8": 8,
 		"9": 9,
 	}
-	if v, err := sumValues(lines, part1); err != nil {
-		log.Fatal(err)
-	} else {
-		fmt.Println("Sum of calibration values (part1):", v)
-	}
 
-	var part2 = map[string]int{
+	return sumValues(lines, pieces)
+}
+
+func Part2(lines []string) int {
+	var pieces = map[string]int{
 		"0":     0,
 		"1":     1,
 		"2":     2,
@@ -62,14 +70,10 @@ func main() {
 		"eight": 8,
 		"nine":  9,
 	}
-	if v, err := sumValues(lines, part2); err != nil {
-		log.Fatal(err)
-	} else {
-		fmt.Println("Sum of calibration values (part2):", v)
-	}
+	return sumValues(lines, pieces)
 }
 
-func sumValues(lines []string, m map[string]int) (int, error) {
+func sumValues(lines []string, m map[string]int) int {
 	var n int
 	for _, l := range lines {
 		var (
@@ -90,9 +94,9 @@ func sumValues(lines []string, m map[string]int) (int, error) {
 		}
 		v, err := strconv.Atoi(fmt.Sprint(vi) + fmt.Sprint(vj))
 		if err != nil {
-			return 0, err
+			panic(err)
 		}
 		n += v
 	}
-	return n, nil
+	return n
 }
