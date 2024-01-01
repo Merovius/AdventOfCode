@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Merovius/AdventOfCode/internal/container"
 	"github.com/Merovius/AdventOfCode/internal/grid"
 	"github.com/Merovius/AdventOfCode/internal/set"
 )
@@ -187,26 +188,25 @@ func (b Beam) String() string {
 }
 
 func Energize(g *Grid, b Beam) int {
-	beams, next := set.Make(b), make(set.Set[Beam])
-	seen := make(set.Set[Beam])
-	for {
-		n := len(seen)
-		for b := range beams {
-			if !g.Valid(b.p) {
-				continue
-			}
-			seen.Add(b)
-			ds := b.d.Interact(g.At(b.p))
-			for _, d := range ds {
-				next.Add(Beam{d.Of(b.p), d})
-			}
+	var (
+		q    container.LIFO[Beam]
+		seen = make(set.Set[Beam])
+	)
+	push := func(b Beam) {
+		if seen.Contains(b) || !g.Valid(b.p) {
+			return
 		}
-		if len(seen) == n {
-			break
-		}
-		next, beams = beams, next
-		clear(next)
+		seen.Add(b)
+		q.Push(b)
 	}
+	push(b)
+	for q.Len() > 0 {
+		b := q.Pop()
+		for _, d := range b.d.Interact(g.At(b.p)) {
+			push(Beam{d.Of(b.p), d})
+		}
+	}
+
 	energized := make(set.Set[grid.Pos])
 	for b := range seen {
 		energized.Add(b.p)
