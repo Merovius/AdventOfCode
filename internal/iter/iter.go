@@ -5,6 +5,8 @@ package iter
 
 import (
 	"sync"
+
+	"golang.org/x/exp/constraints"
 )
 
 type Seq[A any] func(yield func(A) bool)
@@ -116,4 +118,14 @@ func FoldL[A, B any](f func(B, A) B, s Seq[A], z B) B {
 		z = f(z, a)
 	}
 	return z
+}
+
+func Range[T constraints.Integer | constraints.Float](min, max, step T) Seq[T] {
+	return func(yield func(T) bool) {
+		for i := min; i < max; i += step {
+			if !yield(i) {
+				return
+			}
+		}
+	}
 }
