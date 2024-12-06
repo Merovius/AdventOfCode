@@ -1,5 +1,3 @@
-//go:build goexperiment.rangefunc
-
 package main
 
 import (
@@ -80,7 +78,7 @@ func MakeGraph(g *Grid) *Graph {
 	add(grid.Pos{0, 1})
 
 	// find all crossings
-	for p, c := range g.Cells {
+	for p, c := range g.All() {
 		if c == Forest {
 			continue
 		}

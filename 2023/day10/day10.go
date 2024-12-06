@@ -250,7 +250,7 @@ var walls = map[Cell][3][3]Wall{
 // square with loop segments filled in as wall.
 func NewGraph(g *Grid, start grid.Pos, startVal Cell) *Graph {
 	big := grid.New[Wall](3*g.W, 3*g.H)
-	for p, v := range g.Cells {
+	for p, v := range g.All() {
 		if p == start {
 			v = startVal
 		}

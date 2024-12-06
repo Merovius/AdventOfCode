@@ -1,5 +1,3 @@
-//go:build goexperiment.rangefunc
-
 package main
 
 import (
@@ -11,8 +9,8 @@ import (
 	"github.com/Merovius/AdventOfCode/internal/graph"
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
-	"github.com/Merovius/AdventOfCode/internal/iter"
 	"github.com/Merovius/AdventOfCode/internal/set"
+	"github.com/Merovius/AdventOfCode/internal/xiter"
 )
 
 // want example:
@@ -53,7 +51,7 @@ func Part1(in map[string][]string) int {
 		if cut != 3 {
 			continue
 		}
-		r := iter.Len(reachable)
+		r := xiter.Len(reachable)
 		return r * (len(g) - r)
 	}
 }

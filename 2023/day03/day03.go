@@ -1,17 +1,16 @@
-//go:build goexperiment.rangefunc
-
 package main
 
 import (
 	"fmt"
+	"iter"
 	"log"
 	"os"
 	"strconv"
 	"unicode"
 
 	"github.com/Merovius/AdventOfCode/internal/grid"
-	"github.com/Merovius/AdventOfCode/internal/iter"
 	"github.com/Merovius/AdventOfCode/internal/set"
+	"github.com/Merovius/AdventOfCode/internal/xiter"
 )
 
 func main() {
@@ -90,7 +89,7 @@ func FindNumbers(g *grid.Grid[rune]) iter.Seq[Number] {
 }
 
 func FindPartNumbers(g *grid.Grid[rune]) iter.Seq[Number] {
-	return iter.Filter(FindNumbers(g), func(n Number) bool {
+	return xiter.Filter(FindNumbers(g), func(n Number) bool {
 		for _, r := range g.Rect(n.Neighborhood()) {
 			if r != '.' && !unicode.IsDigit(r) {
 				return true

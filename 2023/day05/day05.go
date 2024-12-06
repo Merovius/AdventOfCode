@@ -1,20 +1,19 @@
-//go:build goexperiment.rangefunc
-
 package main
 
 import (
 	"bytes"
 	"fmt"
 	"io"
+	"iter"
 	"log"
 	"math"
 	"os"
+	"slices"
 
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"github.com/Merovius/AdventOfCode/internal/interval"
-	"github.com/Merovius/AdventOfCode/internal/iter"
-	"github.com/Merovius/AdventOfCode/internal/slices"
+	"github.com/Merovius/AdventOfCode/internal/xiter"
 )
 
 func main() {
@@ -98,11 +97,11 @@ func Part2(a Almanach) int {
 	for i := 0; i < len(a.Seeds); i += 2 {
 		intervals = append(intervals, Interval{a.Seeds[i], a.Seeds[i] + a.Seeds[i+1]})
 	}
-	in := iter.Right(slices.Elements(intervals))
+	in := slices.Values(intervals)
 	for _, m := range a.Maps {
 		in = m.Apply(in)
 	}
-	return iter.FoldR(func(i Interval, m int) int {
+	return xiter.FoldR(func(i Interval, m int) int {
 		return min(i.Min, m)
 	}, in, math.MaxInt)
 }

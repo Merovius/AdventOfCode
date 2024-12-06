@@ -1,20 +1,19 @@
-//go:build goexperiment.rangefunc
-
 package main
 
 import (
 	"bytes"
 	"fmt"
 	"io"
+	"iter"
 	"log"
 	"os"
+	"slices"
 
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
-	"github.com/Merovius/AdventOfCode/internal/iter"
 	"github.com/Merovius/AdventOfCode/internal/op"
 	"github.com/Merovius/AdventOfCode/internal/set"
-	"github.com/Merovius/AdventOfCode/internal/slices"
+	"github.com/Merovius/AdventOfCode/internal/xiter"
 )
 
 func main() {
@@ -50,7 +49,7 @@ func Parse(b []byte) ([]Card, error) {
 func Part1(cards []Card) int {
 	var total int
 	for _, c := range cards {
-		if n := iter.Len(WinningNumbers(c)); n > 0 {
+		if n := xiter.Len(WinningNumbers(c)); n > 0 {
 			total += 1 << (n - 1)
 		}
 	}
@@ -59,15 +58,15 @@ func Part1(cards []Card) int {
 
 func Part2(cards []Card) int {
 	wins := make([]int, len(cards))
-	for i, c := range slices.Backwards(cards) {
-		n := iter.Len(WinningNumbers(c))
-		wins[i] = iter.FoldR(
+	for i, c := range slices.Backward(cards) {
+		n := xiter.Len(WinningNumbers(c))
+		wins[i] = xiter.FoldR(
 			op.Add,
-			iter.Right(slices.Elements(wins[i+1:i+1+n])),
+			xiter.Right(slices.All(wins[i+1:i+1+n])),
 			1,
 		)
 	}
-	return iter.FoldR(op.Add, iter.Right(slices.Elements(wins)), 0)
+	return xiter.FoldR(op.Add, xiter.Right(slices.All(wins)), 0)
 }
 
 func WinningNumbers(c Card) iter.Seq[int] {

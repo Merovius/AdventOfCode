@@ -1,5 +1,3 @@
-//go:build goexperiment.rangefunc
-
 package main
 
 import (
@@ -152,7 +150,7 @@ func SlideEast(g *Grid) {
 
 func Load(g *Grid) int {
 	var n int
-	for p, c := range g.Cells {
+	for p, c := range g.All() {
 		if c == Round {
 			n += g.H - p.Row
 		}
