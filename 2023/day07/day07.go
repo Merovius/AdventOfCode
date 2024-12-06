@@ -6,11 +6,11 @@ import (
 	"io"
 	"log"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
-	"github.com/Merovius/AdventOfCode/internal/slices"
 )
 
 func main() {

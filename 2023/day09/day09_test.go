@@ -2,9 +2,8 @@ package main
 
 import (
 	_ "embed"
+	"slices"
 	"testing"
-
-	"github.com/Merovius/AdventOfCode/internal/slices"
 )
 
 //go:embed example.txt

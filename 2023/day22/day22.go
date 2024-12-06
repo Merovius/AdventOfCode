@@ -6,12 +6,12 @@ import (
 	"io"
 	"log"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/container"
 	"github.com/Merovius/AdventOfCode/internal/set"
-	"github.com/Merovius/AdventOfCode/internal/slices"
 )
 
 func main() {

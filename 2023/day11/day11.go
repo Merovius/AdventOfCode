@@ -5,10 +5,10 @@ import (
 	"io"
 	"log"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/grid"
-	"github.com/Merovius/AdventOfCode/internal/slices"
 )
 
 func main() {
