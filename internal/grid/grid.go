@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"iter"
 	"strings"
 	"unicode/utf8"
 
@@ -147,6 +148,36 @@ func (g *Grid[T]) Neigh4(p Pos) []Pos {
 	return out
 }
 
+func (g *Grid[T]) Rect(r Rectangle) iter.Seq2[Pos, T] {
+	return func(yield func(Pos, T) bool) {
+		for p := range r.Intersect(g.Bounds()).All() {
+			if !yield(p, g.At(p)) {
+				return
+			}
+		}
+	}
+}
+
+func (g *Grid[T]) All() iter.Seq2[Pos, T] {
+	return func(yield func(Pos, T) bool) {
+		for p := range g.Bounds().All() {
+			if !yield(p, g.At(p)) {
+				return
+			}
+		}
+	}
+}
+
+func Find[T comparable](g *Grid[T], v T) iter.Seq[Pos] {
+	return func(yield func(Pos) bool) {
+		for p, w := range g.All() {
+			if v == w && !yield(p) {
+				return
+			}
+		}
+	}
+}
+
 type Rectangle struct {
 	Min Pos
 	Max Pos
@@ -244,6 +275,18 @@ func (r Rectangle) Hull(s Rectangle) Rectangle {
 
 func (r Rectangle) Overlaps(s Rectangle) bool {
 	return !r.Empty() && !s.Empty() && r.Min.Col < s.Max.Col && s.Min.Col < r.Max.Col && r.Min.Row < s.Max.Row && s.Min.Row < r.Max.Row
+}
+
+func (r Rectangle) All() iter.Seq[Pos] {
+	return func(yield func(Pos) bool) {
+		for p := r.Min; p.Row < r.Max.Row; p.Row++ {
+			for p.Col = r.Min.Col; p.Col < r.Max.Col; p.Col++ {
+				if !yield(p) {
+					return
+				}
+			}
+		}
+	}
 }
 
 type Direction int
