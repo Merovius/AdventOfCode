@@ -32,13 +32,13 @@ func main() {
 		visited = make(set.Set[grid.Pos])
 	)
 	g.Set(start, Empty)
-	for p, _ := range Run(g, start, d0) {
+	for p := range Run(g, start, d0) {
 		visited.Add(p)
 	}
 	fmt.Println(len(visited))
 
 	obsts := make(set.Set[grid.Pos])
-	for p, _ := range Run(g, start, d0) {
+	for p := range Run(g, start, d0) {
 		if p == start {
 			continue
 		}
