@@ -245,3 +245,51 @@ func (r Rectangle) Hull(s Rectangle) Rectangle {
 func (r Rectangle) Overlaps(s Rectangle) bool {
 	return !r.Empty() && !s.Empty() && r.Min.Col < s.Max.Col && s.Min.Col < r.Max.Col && r.Min.Row < s.Max.Row && s.Min.Row < r.Max.Row
 }
+
+type Direction int
+
+const (
+	Up Direction = iota
+	Right
+	Down
+	Left
+)
+
+func (d Direction) Move(p Pos) Pos {
+	switch d {
+	case Up:
+		p.Row--
+	case Right:
+		p.Col++
+	case Down:
+		p.Row++
+	case Left:
+		p.Col--
+	default:
+		panic("invalid Direction")
+	}
+	return p
+}
+
+func (d Direction) RotateRight() Direction {
+	return (d + 1) % 4
+}
+
+func (d Direction) RotateLeft() Direction {
+	return (d + 3) % 4
+}
+
+func (d Direction) String() string {
+	switch d {
+	case Up:
+		return "^"
+	case Right:
+		return ">"
+	case Down:
+		return "v"
+	case Left:
+		return "<"
+	default:
+		return "?"
+	}
+}

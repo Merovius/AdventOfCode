@@ -11,6 +11,14 @@ import (
 	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
+type Cell byte
+
+const (
+	Empty       = '.'
+	Obstruction = '#'
+	Position    = '^'
+)
+
 func main() {
 	g, err := grid.Read(os.Stdin, func(r rune) (Cell, error) {
 		return Cell(r), nil
@@ -20,7 +28,7 @@ func main() {
 	}
 	var (
 		start   = g.Pos(slices.Index(g.G, Position))
-		d0      = grid.Pos{-1, 0}
+		d0      = grid.Up
 		visited = make(set.Set[grid.Pos])
 	)
 	g.Set(start, Empty)
@@ -43,57 +51,44 @@ func main() {
 	fmt.Println(len(obsts))
 }
 
-type Cell byte
-
-const (
-	Empty       = '.'
-	Obstruction = '#'
-	Position    = '^'
-)
-
-func Run(g *grid.Grid[Cell], p, d grid.Pos) iter.Seq2[grid.Pos, grid.Pos] {
-	return func(yield func(grid.Pos, grid.Pos) bool) {
+func Run(g *grid.Grid[Cell], p grid.Pos, d grid.Direction) iter.Seq2[grid.Pos, grid.Direction] {
+	return func(yield func(grid.Pos, grid.Direction) bool) {
 		for g.Valid(p) {
 			if !yield(p, d) {
 				return
 			}
-			q := p.Add(d)
+			q := d.Move(p)
 			for g.Valid(q) && g.At(q) == Obstruction {
-				d.Row, d.Col = d.Col, -d.Row
-				q = p.Add(d)
+				d = d.RotateRight()
+				q = d.Move(p)
 			}
 			p = q
 		}
 	}
 }
 
-func IsLoop(path iter.Seq2[grid.Pos, grid.Pos]) bool {
-	seen := make(set.Set[[2]grid.Pos])
+func IsLoop(path iter.Seq2[grid.Pos, grid.Direction]) bool {
+	type node struct {
+		grid.Pos
+		grid.Direction
+	}
+	seen := make(set.Set[node])
 	for p, d := range path {
-		pd := [2]grid.Pos{p, d}
-		if seen.Contains(pd) {
+		n := node{p, d}
+		if seen.Contains(n) {
 			return true
 		}
-		seen.Add(pd)
+		seen.Add(n)
 	}
 	return false
 }
 
-func Print(g *grid.Grid[Cell], p, d grid.Pos) {
+func Print(g *grid.Grid[Cell], p grid.Pos, d grid.Direction) {
 	var q grid.Pos
 	for q.Row = 0; q.Row < g.H; q.Row++ {
 		for q.Col = 0; q.Col < g.W; q.Col++ {
 			if q == p {
-				switch d {
-				case grid.Pos{-1, 0}:
-					fmt.Print("^")
-				case grid.Pos{0, 1}:
-					fmt.Print(">")
-				case grid.Pos{1, 0}:
-					fmt.Print("V")
-				case grid.Pos{0, -1}:
-					fmt.Print("<")
-				}
+				fmt.Print(d)
 				continue
 			}
 			fmt.Print(string(g.At(q)))
