@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Merovius/AdventOfCode/internal/grid"
+	"github.com/Merovius/AdventOfCode/internal/math"
 	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
@@ -44,9 +45,10 @@ func main() {
 					continue
 				}
 				δ := q.Sub(p)
-				for g.Valid(q) {
-					nodes.Add(q)
-					q = q.Add(δ)
+				z, _, _ := math.GCD(δ.Row, δ.Col)
+				δ.Row, δ.Col = δ.Row/z, δ.Col/z
+				for x := p; g.Valid(x); x = x.Add(δ) {
+					nodes.Add(x)
 				}
 			}
 		}
