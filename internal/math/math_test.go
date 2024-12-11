@@ -136,3 +136,28 @@ func TestChineseRemaniderBig(t *testing.T) {
 		}
 	}
 }
+
+func TestLog10(t *testing.T) {
+	for i := 1; i < 20000; i++ {
+		p := Log10(i)
+		if i >= 10000 {
+			if p != 4 {
+				t.Errorf("Log10(%d) = %d, want %d", i, p, 4)
+			}
+		} else if i >= 1000 {
+			if p != 3 {
+				t.Errorf("Log10(%d) = %d, want %d", i, p, 3)
+			}
+		} else if i >= 100 {
+			if p != 2 {
+				t.Errorf("Log10(%d) = %d, want %d", i, p, 2)
+			}
+		} else if i >= 10 {
+			if p != 1 {
+				t.Errorf("Log10(%d) = %d, want %d", i, p, 1)
+			}
+		} else if p != 0 {
+			t.Errorf("Log10(%d) = %d, want %d", i, p, 0)
+		}
+	}
+}

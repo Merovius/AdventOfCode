@@ -6,7 +6,9 @@
 package math
 
 import (
+	"fmt"
 	"math/big"
+	"slices"
 
 	"golang.org/x/exp/constraints"
 )
@@ -260,3 +262,30 @@ func Mod[T constraints.Integer](a, b T) T {
 	_, r := DivMod(a, b)
 	return r
 }
+
+// Log10 returns the base-10 logarithm of n, rounded down. If n is not
+// positive, Log10 panics.
+func Log10[T constraints.Integer](n T) int {
+	if n <= 0 {
+		panic(fmt.Errorf("invalid argument: Log10(%d)", n))
+	}
+	i, ok := slices.BinarySearch(pow10[:], uint64(n))
+	if !ok {
+		i--
+	}
+	return i
+}
+
+// Pow10 returns 10^n. It panics, if n is negative or the result would overflow.
+func Pow10(n int) uint64 {
+	if n < 0 {
+		panic(fmt.Errorf("invalid argument: Pow10(%d)", n))
+	}
+	if n >= len(pow10) {
+		panic(fmt.Errorf("overflow: Pow10(%d)", n))
+	}
+	return pow10[n]
+
+}
+
+var pow10 = [...]uint64{1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19}
