@@ -58,7 +58,7 @@ func rec(v, n int) (m int) {
 	if v == 0 {
 		return rec(1, n-1)
 	}
-	if d := math.Log10(v) + 1; d%2 == 0 {
+	if d := math.Digits(v); d%2 == 0 {
 		p := int(math.Pow10(d / 2))
 		return rec(v/p, n-1) + rec(v%p, n-1)
 	}

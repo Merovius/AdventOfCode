@@ -289,3 +289,15 @@ func Pow10(n int) uint64 {
 }
 
 var pow10 = [...]uint64{1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19}
+
+// Digits returns the number of decimal digits of the absolute value of n.
+func Digits[T constraints.Integer](n T) int {
+	switch {
+	case n > 0:
+		return Log10(n) + 1
+	case n < 0:
+		return Log10(-n) + 1
+	default:
+		return 1
+	}
+}

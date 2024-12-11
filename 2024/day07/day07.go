@@ -8,6 +8,7 @@ import (
 
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
+	"github.com/Merovius/AdventOfCode/internal/math"
 )
 
 func main() {
@@ -85,18 +86,6 @@ func solvable2(res int, ins []int) bool {
 			return true
 		}
 	}
-	d := log10(n)
-	p := pow10[d]
+	p := int(math.Pow10(math.Digits(n)))
 	return res%p == n && solvable2(res/p, ins)
 }
-
-func log10(n int) int {
-	var d int = 1
-	for n >= 10 {
-		d++
-		n /= 10
-	}
-	return d
-}
-
-var pow10 = [...]int{1, 10, 100, 1000, 10000, 100000, 1000000, 10000000}
