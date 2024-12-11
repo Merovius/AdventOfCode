@@ -36,3 +36,31 @@ func Test(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkParse(b *testing.B) {
+	for range b.N {
+		Parse(input)
+	}
+}
+
+func BenchmarkPart1(b *testing.B) {
+	in, _ := Parse(input)
+	b.ResetTimer()
+	for range b.N {
+		b.StopTimer()
+		clear(memo)
+		b.StartTimer()
+		Part1(in)
+	}
+}
+
+func BenchmarkPart2(b *testing.B) {
+	in, _ := Parse(input)
+	b.ResetTimer()
+	for range b.N {
+		b.StopTimer()
+		clear(memo)
+		b.StartTimer()
+		Part2(in)
+	}
+}
