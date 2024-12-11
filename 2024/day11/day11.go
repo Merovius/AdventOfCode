@@ -5,10 +5,10 @@ import (
 	"io"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
+	"github.com/Merovius/AdventOfCode/internal/math"
 )
 
 func main() {
@@ -57,11 +57,10 @@ func rec(v, n int) (m int) {
 	}
 	if v == 0 {
 		return rec(1, n-1)
-	} else if s := strconv.Itoa(v); len(s)%2 == 0 {
-		l, _ := strconv.Atoi(s[len(s)/2:])
-		r, _ := strconv.Atoi(s[:len(s)/2])
-		return rec(l, n-1) + rec(r, n-1)
-	} else {
-		return rec(v*2024, n-1)
 	}
+	if d := math.Log10(v) + 1; d%2 == 0 {
+		p := int(math.Pow10(d / 2))
+		return rec(v/p, n-1) + rec(v%p, n-1)
+	}
+	return rec(v*2024, n-1)
 }
