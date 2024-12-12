@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/Merovius/AdventOfCode/internal/container"
 	"github.com/Merovius/AdventOfCode/internal/grid"
 	"github.com/Merovius/AdventOfCode/internal/set"
 )
@@ -29,16 +30,22 @@ func Parse(r io.Reader) (*grid.Grid[Cell], error) {
 }
 
 func Part1(g *grid.Grid[Cell]) int {
-	var price int
-	for area, perimeter := range Areas(g) {
-		price += area * len(perimeter)
+	var (
+		price     int
+		perimeter int
+	)
+	inc := func(_ Edge) { perimeter++ }
+	for area := range Areas(g, inc) {
+		price += area * perimeter
+		perimeter = 0
 	}
 	return price
 }
 
 func Part2(g *grid.Grid[Cell]) int {
+	perimeter := make(set.Set[Edge])
 	var price int
-	for area, perimeter := range Areas(g) {
+	for area := range Areas(g, perimeter.Add) {
 		var sides int
 		for e := range perimeter {
 			sides++
@@ -56,6 +63,7 @@ func Part2(g *grid.Grid[Cell]) int {
 	return price
 }
 
+// Edge separating two points.
 type Edge [2]grid.Pos
 
 // Δ returns an offset to add to e, to continue along its side.
@@ -77,35 +85,35 @@ func (e Edge) Sub(δ grid.Pos) Edge {
 	return e
 }
 
-func Areas(g *grid.Grid[Cell]) iter.Seq2[int, set.Set[Edge]] {
-	return func(yield func(int, set.Set[Edge]) bool) {
+// Areas finds all regions in g, yielding their area. perimeter is called for
+// each Edge in the perimeter of the currently found region.
+func Areas(g *grid.Grid[Cell], perimeter func(Edge)) iter.Seq[int] {
+	return func(yield func(int) bool) {
 		seen := make(set.Set[grid.Pos])
+		var queue container.LIFO[grid.Pos]
 		for p, _ := range g.All() {
 			if seen.Contains(p) {
 				continue
 			}
-			var (
-				area      int
-				perimeter = make(set.Set[Edge])
-			)
-			var rec func(grid.Pos)
-			rec = func(p grid.Pos) {
+			var area int
+			queue.Push(p)
+			for queue.Len() > 0 {
+				p := queue.Pop()
 				if seen.Contains(p) {
-					return
+					continue
 				}
 				seen.Add(p)
 				area++
 				for _, δ := range []grid.Pos{{-1, 0}, {0, -1}, {0, 1}, {1, 0}} {
 					q := p.Add(δ)
 					if !g.Valid(q) || g.At(p) != g.At(q) {
-						perimeter.Add(Edge{p, q})
+						perimeter(Edge{p, q})
 						continue
 					}
-					rec(q)
+					queue.Push(q)
 				}
 			}
-			rec(p)
-			if !yield(area, perimeter) {
+			if !yield(area) {
 				return
 			}
 		}
