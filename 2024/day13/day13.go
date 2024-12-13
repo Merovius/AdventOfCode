@@ -1,12 +1,27 @@
 package main
 
 import (
+	"fmt"
+	"io"
+	"log"
+	"os"
+
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"github.com/Merovius/AdventOfCode/internal/math"
 )
 
 func main() {
+	buf, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ms, err := Parse(buf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(Part1(ms))
+	fmt.Println(Part2(ms))
 }
 
 func Parse(in []byte) ([]Machine, error) {
