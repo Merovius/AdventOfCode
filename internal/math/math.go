@@ -301,3 +301,53 @@ func Digits[T constraints.Integer](n T) int {
 		return 1
 	}
 }
+
+// Cramer2 solves the linear equation x₀•a+x₁•b=c. It returns [0, 0], false,
+// if there is no unique integer solution.
+func Cramer2[T constraints.Integer](a, b, c [2]T) (x [2]T, ok bool) {
+	// Cramer's rule
+	Δ := det2x2(a, b)
+	if Δ == 0 {
+		return x, false
+	}
+	x0 := det2x2(c, b)
+	if x0%Δ != 0 {
+		return x, false
+	}
+	x1 := det2x2(a, c)
+	if x1%Δ != 0 {
+		return x, false
+	}
+	return [2]T{x0 / Δ, x1 / Δ}, true
+}
+
+func det2x2[T constraints.Integer](a, b [2]T) T {
+	return a[0]*b[1] - b[0]*a[1]
+}
+
+// Cramer3 solves the linear equation x₀•a+x₁•b+x₂•c=d. It returns
+// [0, 0, 0], false, if there is no unique integer solutions.
+func Cramer3[T constraints.Integer](a, b, c, d [3]T) (x [3]T, ok bool) {
+	// Cramer's rule
+	Δ := det3x3(a, b, c)
+	if Δ == 0 {
+		return x, false
+	}
+	x0 := det3x3(d, b, c)
+	if x0%Δ != 0 {
+		return x, false
+	}
+	x1 := det3x3(a, d, c)
+	if x1%Δ != 0 {
+		return x, false
+	}
+	x2 := det3x3(a, b, d)
+	if x2%Δ != 0 {
+		return x, false
+	}
+	return [3]T{x0 / Δ, x1 / Δ, x2 / Δ}, true
+}
+
+func det3x3[T constraints.Integer](a, b, c [3]T) T {
+	return a[0]*b[1]*c[2] + b[0]*c[1]*a[2] + c[0]*a[1]*b[2] - a[0]*c[1]*b[2] - b[0]*a[1]*c[2] - c[0]*b[1]*a[2]
+}
