@@ -168,6 +168,26 @@ func (g *Grid[T]) All() iter.Seq2[Pos, T] {
 	}
 }
 
+func (g *Grid[T]) String() string {
+	w := new(strings.Builder)
+	write := func(v T) { fmt.Fprint(w, v) }
+	switch any(*new(T)).(type) {
+	case fmt.Stringer:
+		write = func(v T) { w.WriteString(any(v).(fmt.Stringer).String()) }
+	case byte:
+		write = func(v T) { w.WriteByte(any(v).(byte)) }
+	case rune:
+		write = func(v T) { w.WriteRune(any(v).(rune)) }
+	}
+	for r := range g.H {
+		for c := range g.W {
+			write(g.At(Pos{r, c}))
+		}
+		w.WriteByte('\n')
+	}
+	return w.String()
+}
+
 func Find[T comparable](g *Grid[T], v T) iter.Seq[Pos] {
 	return func(yield func(Pos) bool) {
 		for p, w := range g.All() {
