@@ -18,11 +18,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	G := &Graph{g}
+	G := graph.NeighborFunc(func(p grid.Pos) iter.Seq[grid.Pos] {
+		return func(yield func(grid.Pos) bool) {
+			v := g.At(p)
+			for _, q := range g.Neigh4(p) {
+				w := g.At(q)
+				if w-v == 1 && !yield(q) {
+					return
+				}
+			}
+		}
+	})
 
 	var score int
 	var rating int
-	for p, h := range G.g.All() {
+	for p, h := range g.All() {
 		if h != 0 {
 			continue
 		}
@@ -41,33 +51,9 @@ func main() {
 	fmt.Println(rating)
 }
 
-type Graph struct {
-	g *grid.Grid[int8]
-}
-
-func (g *Graph) Edges(p grid.Pos) iter.Seq[[2]grid.Pos] {
-	return func(yield func([2]grid.Pos) bool) {
-		v := g.g.At(p)
-		for _, q := range g.g.Neigh4(p) {
-			w := g.g.At(q)
-			if w-v == 1 && !yield([2]grid.Pos{p, q}) {
-				return
-			}
-		}
-	}
-}
-
-func (g *Graph) From(e [2]grid.Pos) grid.Pos {
-	return e[0]
-}
-
-func (g *Graph) To(e [2]grid.Pos) grid.Pos {
-	return e[1]
-}
-
 // Walk the Graph in depth-first order, taking all possible paths. Differs from
 // graph.WalkDepthFirst in that nodes may be visited multiple times.
-func Walk(g *Graph, start grid.Pos) iter.Seq[grid.Pos] {
+func Walk(g graph.Graph[grid.Pos, [2]grid.Pos], start grid.Pos) iter.Seq[grid.Pos] {
 	return func(yield func(grid.Pos) bool) {
 		var q container.FIFO[grid.Pos]
 		q.Push(start)

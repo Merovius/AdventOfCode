@@ -387,3 +387,28 @@ func (g *Sparse[W]) SetWeight(i, j int, w W) {
 	}
 	g.edges[i] = append(g.edges[i], sparseEdge[W]{j, w})
 }
+
+// NeighborFunc returns a Graph that only has simple edges.
+func NeighborFunc[N any](neighbors func(N) iter.Seq[N]) Graph[N, [2]N] {
+	return neighborFunc[N](neighbors)
+}
+
+type neighborFunc[N any] func(N) iter.Seq[N]
+
+func (f neighborFunc[N]) Edges(n N) iter.Seq[[2]N] {
+	return func(yield func([2]N) bool) {
+		for m := range f(n) {
+			if !yield([2]N{n, m}) {
+				return
+			}
+		}
+	}
+}
+
+func (f neighborFunc[N]) From(e [2]N) N {
+	return e[0]
+}
+
+func (f neighborFunc[N]) To(e [2]N) N {
+	return e[1]
+}
