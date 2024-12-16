@@ -45,16 +45,16 @@ type Graph struct {
 	g *grid.Grid[int8]
 }
 
-func (g *Graph) Edges(p grid.Pos) [][2]grid.Pos {
-	var out [][2]grid.Pos
-	v := g.g.At(p)
-	for _, q := range g.g.Neigh4(p) {
-		w := g.g.At(q)
-		if w-v == 1 {
-			out = append(out, [2]grid.Pos{p, q})
+func (g *Graph) Edges(p grid.Pos) iter.Seq[[2]grid.Pos] {
+	return func(yield func([2]grid.Pos) bool) {
+		v := g.g.At(p)
+		for _, q := range g.g.Neigh4(p) {
+			w := g.g.At(q)
+			if w-v == 1 && !yield([2]grid.Pos{p, q}) {
+				return
+			}
 		}
 	}
-	return out
 }
 
 func (g *Graph) From(e [2]grid.Pos) grid.Pos {
@@ -76,7 +76,7 @@ func Walk(g *Graph, start grid.Pos) iter.Seq[grid.Pos] {
 			if !yield(p) {
 				return
 			}
-			for _, e := range g.Edges(p) {
+			for e := range g.Edges(p) {
 				q.Push(g.To(e))
 			}
 		}

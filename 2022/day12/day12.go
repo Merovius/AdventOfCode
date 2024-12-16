@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"iter"
 	"log"
 	"os"
 
@@ -92,15 +93,17 @@ type Graph struct {
 	ValidEdge func(int, int) bool
 }
 
-func (g *Graph) Edges(p grid.Pos) []Edge {
-	var out []Edge
-	for _, n := range g.Neigh4(p) {
-		if !g.ValidEdge(g.At(p), g.At(n)) {
-			continue
+func (g *Graph) Edges(p grid.Pos) iter.Seq[Edge] {
+	return func(yield func(Edge) bool) {
+		for _, n := range g.Neigh4(p) {
+			if !g.ValidEdge(g.At(p), g.At(n)) {
+				continue
+			}
+			if !yield(Edge{p, n}) {
+				return
+			}
 		}
-		out = append(out, Edge{p, n})
 	}
-	return out
 }
 
 func (g *Graph) From(e Edge) grid.Pos { return e.From }

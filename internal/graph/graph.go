@@ -16,7 +16,7 @@ type Edge[Node any] struct {
 }
 
 type Graph[Node, Edge any] interface {
-	Edges(Node) []Edge
+	Edges(Node) iter.Seq[Edge]
 	From(Edge) Node
 	To(Edge) Node
 }
@@ -49,7 +49,7 @@ func BreadthFirstSearch[N comparable, E any](g Graph[N, E], start N, goal func(N
 		q    container.FIFO[E]
 		prev = make(map[N]E)
 	)
-	for _, ne := range g.Edges(start) {
+	for ne := range g.Edges(start) {
 		q.Push(ne)
 	}
 	for q.Len() > 0 {
@@ -62,7 +62,7 @@ func BreadthFirstSearch[N comparable, E any](g Graph[N, E], start N, goal func(N
 		if goal(to) {
 			return makePath(start, to, g.From, prev)
 		}
-		for _, e := range g.Edges(to) {
+		for e := range g.Edges(to) {
 			q.Push(e)
 		}
 	}
@@ -101,7 +101,7 @@ func AStar[N comparable, E any, W Weight](g Weighted[N, E, W], start N, goal fun
 		if goal(e.to) {
 			return makePath(start, e.to, g.From, prev)
 		}
-		for _, n := range g.Edges(e.to) {
+		for n := range g.Edges(e.to) {
 			to, w := g.To(n), g.Weight(n)
 			q.Push(el{e.dist + w + h(to), e.dist + w, n, to})
 		}
@@ -133,7 +133,7 @@ func WalkDepthFirst[N comparable, E any](g Graph[N, E], start N) iter.Seq[N] {
 		seen.Add(start)
 		for q.Len() > 0 {
 			n := q.Pop()
-			for _, e := range g.Edges(n) {
+			for e := range g.Edges(n) {
 				m := g.To(e)
 				if seen.Contains(m) {
 					continue
@@ -169,7 +169,7 @@ func MaximumFlow[N, E comparable, W Weight](g UndirectedWeighted[N, E, W], sourc
 				break
 			}
 			cur := q.Pop()
-			for _, e := range g.Edges(cur) {
+			for e := range g.Edges(cur) {
 				to := g.To(e)
 				if _, ok := pred[to]; !ok && to != source && g.Weight(e) > flows[e] {
 					pred[to] = e
@@ -237,7 +237,7 @@ func MinimumCut[N, E comparable, W Weight](g UndirectedWeighted[N, E, W], a, b N
 		push(a)
 		for q.Len() > 0 {
 			n := q.Pop()
-			for _, e := range res.Edges(n) {
+			for e := range res.Edges(n) {
 				if res.Weight(e) == 0 {
 					continue
 				}
@@ -284,24 +284,11 @@ func NewDense[W constraints.Integer | constraints.Float](n int) *Dense[W] {
 }
 
 // Edges returns the non-zero edges adjacent to i.
-func (g *Dense[W]) Edges(i int) [][2]int {
-	e := make([][2]int, 0, g.N)
-	for j, w := range g.W[g.N*i : g.N*i+g.N] {
-		if w != 0 {
-			e = append(e, [2]int{i, j})
-		}
-	}
-	return e
-}
-
-// EdgeSeq is like Edges, but returns an iterator.
-func (g *Dense[W]) EdgeSeq(i int) iter.Seq[[2]int] {
+func (g *Dense[W]) Edges(i int) iter.Seq[[2]int] {
 	return func(yield func([2]int) bool) {
 		for j, w := range g.W[g.N*i : g.N*i+g.N] {
-			if w != 0 {
-				if !yield([2]int{i, j}) {
-					return
-				}
+			if w != 0 && !yield([2]int{i, j}) {
+				return
 			}
 		}
 	}
@@ -348,12 +335,14 @@ type sparseEdge[W any] struct {
 
 // Edges returns the edges adjacent to i. The returned slice must not be
 // modified.
-func (g *Sparse[W]) Edges(i int) [][2]int {
-	out := make([][2]int, len(g.edges[i]))
-	for j, e := range g.edges[i] {
-		out[j] = [2]int{i, e.i}
+func (g *Sparse[W]) Edges(i int) iter.Seq[[2]int] {
+	return func(yield func([2]int) bool) {
+		for _, e := range g.edges[i] {
+			if !yield([2]int{i, e.i}) {
+				return
+			}
+		}
 	}
-	return out
 }
 
 // WeightedEdges returns an iterator over the edges adjacent to i and their

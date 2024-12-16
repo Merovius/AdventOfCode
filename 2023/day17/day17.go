@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"iter"
 	"log"
 	"os"
 	"strings"
@@ -88,32 +89,35 @@ type Edge struct {
 	Loss int
 }
 
-func (g *Graph) Edges(n Node) []Edge {
-	var out []Edge
-	for _, δ := range []grid.Pos{{1, 0}, {0, 1}, {-1, 0}, {0, -1}} {
-		if δ == n.Δ || (δ.Row == -n.Δ.Row && δ.Col == -n.Δ.Col) {
-			continue
-		}
-		var (
-			loss int
-			p    = n.P
-		)
-		for i := range g.Max {
-			p = p.Add(δ)
-			if !g.Valid(p) {
-				break
+func (g *Graph) Edges(n Node) iter.Seq[Edge] {
+	return func(yield func(Edge) bool) {
+		for _, δ := range []grid.Pos{{1, 0}, {0, 1}, {-1, 0}, {0, -1}} {
+			if δ == n.Δ || (δ.Row == -n.Δ.Row && δ.Col == -n.Δ.Col) {
+				continue
 			}
-			loss += int(g.At(p))
-			if i >= g.Min {
-				out = append(out, Edge{
-					From: n,
-					To:   Node{p, δ},
-					Loss: loss,
-				})
+			var (
+				loss int
+				p    = n.P
+			)
+			for i := range g.Max {
+				p = p.Add(δ)
+				if !g.Valid(p) {
+					break
+				}
+				loss += int(g.At(p))
+				if i >= g.Min {
+					e := Edge{
+						From: n,
+						To:   Node{p, δ},
+						Loss: loss,
+					}
+					if !yield(e) {
+						return
+					}
+				}
 			}
 		}
 	}
-	return out
 }
 
 func (g *Graph) From(e Edge) Node {

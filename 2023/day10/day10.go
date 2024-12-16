@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"iter"
 	"log"
 	"os"
 	"strings"
@@ -270,14 +271,14 @@ type Edge struct {
 	dst grid.Pos
 }
 
-func (g *Graph) Edges(p grid.Pos) []Edge {
-	edges := make([]Edge, 0, 4)
-	for _, q := range g.g.Neigh4(p) {
-		if !g.g.At(q) {
-			edges = append(edges, Edge{p, q})
+func (g *Graph) Edges(p grid.Pos) iter.Seq[Edge] {
+	return func(yield func(Edge) bool) {
+		for _, q := range g.g.Neigh4(p) {
+			if !bool(g.g.At(q)) && !yield(Edge{p, q}) {
+				return
+			}
 		}
 	}
-	return edges
 }
 
 func (g *Graph) From(e Edge) grid.Pos {

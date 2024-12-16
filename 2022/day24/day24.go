@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"iter"
 	"log"
 	"os"
 	"strings"
@@ -34,9 +35,9 @@ func main() {
 		time:   0,
 		player: grid.Pos{-1, 0},
 	}
-	path := graph.AStar[State, Edge, int](g, start, g.Goal, g.Heuristic)
+	path := graph.AStar(g, start, g.Goal, g.Heuristic)
 	fmt.Println("Part 1:", len(path))
-	path = graph.AStar[State, Edge, int](g, start, g.Goal2, g.Heuristic2)
+	path = graph.AStar(g, start, g.Goal2, g.Heuristic2)
 	fmt.Println("Part 2:", len(path))
 }
 
@@ -143,50 +144,52 @@ func (g *Graph) goalPos() grid.Pos {
 	return grid.Pos{g.h, g.w - 1}
 }
 
-func (g *Graph) Edges(s State) []Edge {
-	logf("Edges(%+v)", s)
-	next := set.Make(s.player)
-	for _, δ := range []grid.Pos{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
-		p := s.player.Add(δ)
-		if p.Row >= 0 && p.Row < g.h && p.Col >= 0 && p.Col < g.w {
-			next.Add(p)
-		}
-		if p == g.goalPos() || p == g.startPos() {
-			next.Add(p)
-		}
-	}
-	for _, b := range g.blizzards {
-		p := g.blizzardPos(b, s.time+1)
-		if next.Contains(p) {
-			logf("%v blocked by blizzard %v", p, b.Start)
-			next.Delete(p)
-		}
-		if len(next) == 0 {
-			break
-		}
-	}
-	var out []Edge
-	for p := range next {
-		n := s
-		n.time++
-		n.player = p
-		if n.t1 == 0 {
-			if p == g.goalPos() {
-				n.t1 = n.time
+func (g *Graph) Edges(s State) iter.Seq[Edge] {
+	return func(yield func(Edge) bool) {
+		logf("Edges(%+v)", s)
+		next := set.Make(s.player)
+		for _, δ := range []grid.Pos{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
+			p := s.player.Add(δ)
+			if p.Row >= 0 && p.Row < g.h && p.Col >= 0 && p.Col < g.w {
+				next.Add(p)
 			}
-		} else if n.t2 == 0 {
-			if p == g.startPos() {
-				n.t2 = n.time
-			}
-		} else if n.t3 == 0 {
-			if p == g.goalPos() {
-				n.t3 = n.time
+			if p == g.goalPos() || p == g.startPos() {
+				next.Add(p)
 			}
 		}
-		logf("%v → %v", s, n)
-		out = append(out, Edge{From: s, To: n})
+		for _, b := range g.blizzards {
+			p := g.blizzardPos(b, s.time+1)
+			if next.Contains(p) {
+				logf("%v blocked by blizzard %v", p, b.Start)
+				next.Delete(p)
+			}
+			if len(next) == 0 {
+				break
+			}
+		}
+		for p := range next {
+			n := s
+			n.time++
+			n.player = p
+			if n.t1 == 0 {
+				if p == g.goalPos() {
+					n.t1 = n.time
+				}
+			} else if n.t2 == 0 {
+				if p == g.startPos() {
+					n.t2 = n.time
+				}
+			} else if n.t3 == 0 {
+				if p == g.goalPos() {
+					n.t3 = n.time
+				}
+			}
+			logf("%v → %v", s, n)
+			if !yield(Edge{From: s, To: n}) {
+				return
+			}
+		}
 	}
-	return out
 }
 
 func (g *Graph) From(e Edge) State {

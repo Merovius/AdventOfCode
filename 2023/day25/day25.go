@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"iter"
 	"log"
 	"os"
 
@@ -75,12 +76,14 @@ func MakeGraph(in map[string][]string) Graph {
 	return g
 }
 
-func (g Graph) Edges(n string) [][2]string {
-	out := make([][2]string, 0, len(g[n]))
-	for to := range g[n] {
-		out = append(out, [2]string{n, to})
+func (g Graph) Edges(n string) iter.Seq[[2]string] {
+	return func(yield func([2]string) bool) {
+		for to := range g[n] {
+			if !yield([2]string{n, to}) {
+				return
+			}
+		}
 	}
-	return out
 }
 
 func (g Graph) From(e [2]string) string {

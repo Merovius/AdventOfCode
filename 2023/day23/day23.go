@@ -51,7 +51,7 @@ func Part1(g *Grid) int {
 func Part2(g *Grid) int {
 	G := MakeGraph(g)
 	for i := range G.N {
-		for _, e := range G.Edges(i) {
+		for e := range G.Edges(i) {
 			G.SetWeight(G.To(e), G.From(e), G.Weight(e))
 		}
 	}
