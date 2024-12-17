@@ -318,6 +318,16 @@ const (
 	Left
 )
 
+func Directions() iter.Seq[Direction] {
+	return func(yield func(Direction) bool) {
+		for d := Up; d <= Left; d++ {
+			if !yield(d) {
+				return
+			}
+		}
+	}
+}
+
 func (d Direction) Move(p Pos) Pos {
 	switch d {
 	case Up:
@@ -340,6 +350,10 @@ func (d Direction) RotateRight() Direction {
 
 func (d Direction) RotateLeft() Direction {
 	return (d + 3) % 4
+}
+
+func (d Direction) Invert() Direction {
+	return (d + 2) % 4
 }
 
 func (d Direction) String() string {
