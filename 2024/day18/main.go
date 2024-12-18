@@ -4,12 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"iter"
 	"log"
+	"math"
 	"os"
 	"sort"
 
-	"github.com/Merovius/AdventOfCode/internal/graph"
+	"github.com/Merovius/AdventOfCode/internal/container"
 	"github.com/Merovius/AdventOfCode/internal/grid"
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
@@ -42,53 +42,55 @@ func Parse(in []byte) ([][2]int, error) {
 }
 
 func Part1(in [][2]int, w, h, n int) int {
-	g, G := MakeGraph(w, h)
+	g := grid.New[Cell](w, h)
 	for _, xy := range in[:n] {
 		g.Set(grid.Pos{xy[1], xy[0]}, Corrupted)
 	}
-	return ShortestPath(G, w, h)
+	return ShortestPath(g)
 }
 
 func Part2(in [][2]int, w, h int) [2]int {
-	g, G := MakeGraph(w, h)
+	g := grid.New[Cell](w, h)
 	i := sort.Search(len(in), func(i int) bool {
 		clear(g.G)
 		for _, xy := range in[:i] {
 			g.Set(grid.Pos{xy[1], xy[0]}, Corrupted)
 		}
-		return ShortestPath(G, w, h) == 0
+		return ShortestPath(g) == 0
 	})
 	return in[i-1]
 }
 
-type Cell byte
+type Cell uint16
 
-const (
-	Empty Cell = iota
-	Corrupted
-)
+const Corrupted Cell = math.MaxUint16
 
-type Grid = grid.Grid[Cell]
-type Graph = graph.Graph[grid.Pos, [2]grid.Pos]
-
-func MakeGraph(w, h int) (*Grid, Graph) {
-	g := grid.New[Cell](w, h)
-	return g, graph.NeighborFunc(func(p grid.Pos) iter.Seq[grid.Pos] {
-		return func(yield func(grid.Pos) bool) {
-			for q, c := range g.Neigh4(p) {
-				if c != Empty {
-					continue
-				}
-				if !yield(q) {
-					return
-				}
-			}
+func ShortestPath(g *grid.Grid[Cell]) int {
+	// Specialized BFS, as graph.BreathFirstSearch allocates too much.
+	type el struct {
+		p grid.Pos
+		d Cell
+	}
+	start := grid.Pos{}
+	end := grid.Pos{g.W - 1, g.H - 1}
+	q := make(container.FIFO[el], 0, g.W*g.H)
+	q.Push(el{start, 0})
+	for q.Len() > 0 {
+		e := q.Pop()
+		if g.At(e.p) > 0 {
+			continue
 		}
-	})
-}
+		g.Set(e.p, e.d)
+		for p, c := range g.Neigh4(e.p) {
+			if c > 0 {
+				continue
+			}
+			if p == end {
+				return int(e.d + 1)
+			}
+			q.Push(el{p, e.d + 1})
+		}
 
-func ShortestPath(G Graph, w, h int) int {
-	return len(graph.BreadthFirstSearch(G, grid.Pos{0, 0}, func(p grid.Pos) bool {
-		return p.Row == h-1 && p.Col == w-1
-	}))
+	}
+	return 0
 }
