@@ -19,7 +19,7 @@ func main() {
 	log.SetFlags(0)
 	w := flag.Int("w", 0, "width")
 	h := flag.Int("h", 0, "height")
-	n := flag.Int("h", 0, "number of bytes")
+	n := flag.Int("n", 0, "number of bytes")
 	flag.Parse()
 	if *w == 0 || *h == 0 || *n == 0 {
 		log.Fatal("Both -w, -h and -n are required")
@@ -73,7 +73,7 @@ func ShortestPath(g *grid.Grid[Cell]) int {
 	}
 	start := grid.Pos{}
 	end := grid.Pos{g.W - 1, g.H - 1}
-	q := make(container.FIFO[el], 0, g.W*g.H)
+	q := container.MakeFIFO[el](g.W * g.H)
 	q.Push(el{start, 0})
 	for q.Len() > 0 {
 		e := q.Pop()
