@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"iter"
 	"log"
 	"os"
 	"strings"
@@ -117,7 +118,7 @@ const (
 
 type Grid interface {
 	At(grid.Pos) Cell
-	Neigh4(grid.Pos) []grid.Pos
+	Neigh4(grid.Pos) iter.Seq2[grid.Pos, Cell]
 }
 
 // universal cover of Grid - presents (r,c) as (r%g.H, c%g.C) of the underlying
@@ -138,15 +139,18 @@ func (w *cover) At(p grid.Pos) Cell {
 	return w.Grid.At(p)
 }
 
-func (w *cover) Neigh4(p grid.Pos) []grid.Pos {
-	out := make([]grid.Pos, 0, 4)
-	for _, δ := range []grid.Pos{{-1, 0}, {0, 1}, {1, 0}, {0, -1}} {
-		q := p.Add(δ)
-		if w.At(q) != Rocks {
-			out = append(out, q)
+func (w *cover) Neigh4(p grid.Pos) iter.Seq2[grid.Pos, Cell] {
+	return func(yield func(grid.Pos, Cell) bool) {
+		for _, δ := range []grid.Pos{{-1, 0}, {0, 1}, {1, 0}, {0, -1}} {
+			q := p.Add(δ)
+			if c := w.At(q); c != Rocks {
+				if !yield(q, c) {
+					return
+				}
+			}
 		}
+
 	}
-	return out
 }
 
 func NReachable(g Grid, start grid.Pos, n int) int {
@@ -170,8 +174,8 @@ func NReachable(g Grid, start grid.Pos, n int) int {
 		if (st.steps % 2) == (n % 2) {
 			total++
 		}
-		for _, neigh := range g.Neigh4(st.pos) {
-			if g.At(neigh) != Garden {
+		for neigh, c := range g.Neigh4(st.pos) {
+			if c != Garden {
 				continue
 			}
 			if seen.Contains(neigh) {

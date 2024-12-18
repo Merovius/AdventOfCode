@@ -75,8 +75,8 @@ func MakeGraph(w, h int) (*Grid, Graph) {
 	g := grid.New[Cell](w, h)
 	return g, graph.NeighborFunc(func(p grid.Pos) iter.Seq[grid.Pos] {
 		return func(yield func(grid.Pos) bool) {
-			for _, q := range g.Neigh4(p) {
-				if g.At(q) != Empty {
+			for q, c := range g.Neigh4(p) {
+				if c != Empty {
 					continue
 				}
 				if !yield(q) {

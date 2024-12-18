@@ -273,8 +273,8 @@ type Edge struct {
 
 func (g *Graph) Edges(p grid.Pos) iter.Seq[Edge] {
 	return func(yield func(Edge) bool) {
-		for _, q := range g.g.Neigh4(p) {
-			if !bool(g.g.At(q)) && !yield(Edge{p, q}) {
+		for q, w := range g.g.Neigh4(p) {
+			if !bool(w) && !yield(Edge{p, q}) {
 				return
 			}
 		}

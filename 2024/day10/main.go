@@ -21,8 +21,7 @@ func main() {
 	G := graph.NeighborFunc(func(p grid.Pos) iter.Seq[grid.Pos] {
 		return func(yield func(grid.Pos) bool) {
 			v := g.At(p)
-			for _, q := range g.Neigh4(p) {
-				w := g.At(q)
+			for q, w := range g.Neigh4(p) {
 				if w-v == 1 && !yield(q) {
 					return
 				}

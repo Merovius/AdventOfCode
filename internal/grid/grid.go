@@ -136,16 +136,18 @@ func (g *Grid[T]) Valid(p Pos) bool {
 	return p.Row >= 0 && p.Row < g.H && p.Col >= 0 && p.Col < g.W
 }
 
-func (g *Grid[T]) Neigh4(p Pos) []Pos {
-	out := make([]Pos, 0, 4)
-	for _, δ := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
-		n := p.Add(Pos{δ[0], δ[1]})
-		if !g.Valid(n) {
-			continue
+func (g *Grid[T]) Neigh4(p Pos) iter.Seq2[Pos, T] {
+	return func(yield func(Pos, T) bool) {
+		for _, δ := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
+			n := p.Add(Pos{δ[0], δ[1]})
+			if !g.Valid(n) {
+				continue
+			}
+			if !yield(n, g.At(n)) {
+				return
+			}
 		}
-		out = append(out, n)
 	}
-	return out
 }
 
 func (g *Grid[T]) Rect(r Rectangle) iter.Seq2[Pos, T] {

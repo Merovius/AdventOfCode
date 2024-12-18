@@ -95,8 +95,9 @@ type Graph struct {
 
 func (g *Graph) Edges(p grid.Pos) iter.Seq[Edge] {
 	return func(yield func(Edge) bool) {
-		for _, n := range g.Neigh4(p) {
-			if !g.ValidEdge(g.At(p), g.At(n)) {
+		v := g.At(p)
+		for n, w := range g.Neigh4(p) {
+			if !g.ValidEdge(v, w) {
 				continue
 			}
 			if !yield(Edge{p, n}) {

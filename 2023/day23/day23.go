@@ -83,8 +83,8 @@ func MakeGraph(g *Grid) *Graph {
 			continue
 		}
 		var n int
-		for _, q := range g.Neigh4(p) {
-			if g.At(q) == Forest {
+		for _, c := range g.Neigh4(p) {
+			if c == Forest {
 				continue
 			}
 			n++
