@@ -97,3 +97,13 @@ func Range[T constraints.Integer | constraints.Float](min, max, step T) iter.Seq
 		}
 	}
 }
+
+func Map[A, B any](s iter.Seq[A], f func(A) B) iter.Seq[B] {
+	return func(yield func(B) bool) {
+		for a := range s {
+			if !yield(f(a)) {
+				return
+			}
+		}
+	}
+}
