@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Merovius/AdventOfCode/internal/container"
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
 )
@@ -26,22 +27,25 @@ func main() {
 	fmt.Println(Part2(in))
 }
 
-func Parse(in []byte) (Input, error) {
+func Parse(buf []byte) (Input, error) {
 	return parse.Struct[Input](
 		split.Blocks,
-		parse.Slice(
-			split.On(", "),
-			parse.String[string],
-		),
+		func(s string) (*container.RadixSet, error) {
+			r := new(container.RadixSet)
+			for p := range strings.SplitSeq(s, ", ") {
+				r.Add(p)
+			}
+			return r, nil
+		},
 		parse.Slice(
 			split.Lines,
 			parse.String[string],
 		),
-	)(string(in))
+	)(string(buf))
 }
 
 type Input struct {
-	Patterns []string
+	Patterns *container.RadixSet
 	Designs  []string
 }
 
@@ -69,7 +73,7 @@ func Part2(in Input) int {
 
 var memo map[string]int
 
-func count(memo map[string]int, checkOnly bool, patterns []string, design string) (v int) {
+func count(memo map[string]int, checkOnly bool, patterns *container.RadixSet, design string) (v int) {
 	if v, ok := memo[design]; ok {
 		return v
 	}
@@ -79,12 +83,8 @@ func count(memo map[string]int, checkOnly bool, patterns []string, design string
 		return 1
 	}
 	var n int
-	for _, p := range patterns {
-		rest, ok := strings.CutPrefix(design, p)
-		if !ok {
-			continue
-		}
-		n += count(memo, checkOnly, patterns, rest)
+	for p := range patterns.PrefixesOf(design) {
+		n += count(memo, checkOnly, patterns, design[len(p):])
 		if checkOnly && n > 0 {
 			return 1
 		}
