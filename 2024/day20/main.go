@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Merovius/AdventOfCode/internal/grid"
+	"github.com/Merovius/AdventOfCode/internal/math"
 )
 
 func main() {
@@ -58,9 +59,11 @@ func Part2(g *grid.Grid[Cell], save int) int {
 
 func findCheats(g *grid.Grid[Cell], save, cheat int) int {
 	var (
-		p    = g.Pos(slices.Index(g.G, Start))
-		d    = grid.Up
-		path = []grid.Pos{p}
+		start = g.Pos(slices.Index(g.G, Start))
+		p     = start
+		d     = grid.Up
+		path  = []grid.Pos{p}
+		dist  = grid.New[int](g.W, g.H)
 	)
 	for g.At(p) != End {
 		for _, dd := range []grid.Direction{d, d.RotateRight(), d.RotateLeft()} {
@@ -69,14 +72,32 @@ func findCheats(g *grid.Grid[Cell], save, cheat int) int {
 				break
 			}
 		}
+		dist.Set(p, len(path)-1)
 	}
 	var N int
 	for i, p := range path[:len(path)-save] {
-		// jump ahead save steps and see if we can reach it by
-		// cheating.
-		for j, q := range path[i+save:] {
-			if d := q.Sub(p).Length(); d <= cheat && d <= j {
-				N++
+		// Find all valid cheat targets:
+		// - δr varies from [-cheat,cheat]
+		// - δc varies from [-cheat+|δr|,cheat-|δr|]
+		// - Thus |δr|+|δc| ≤ cheat
+		// - Also restrict that p.Row+δr ∈ [0,g.H) and p.Col+δc ∈ [0,g.W)
+		lo := max(-cheat, -p.Row)
+		hi := min(cheat, g.H-1-p.Row)
+		for δr := lo; δr <= hi; δr++ {
+			aδr := math.Abs(δr)
+			lo := max(-cheat+aδr, -p.Col)
+			hi := min(cheat-aδr, g.W-1-p.Col)
+			for δc := lo; δc <= hi; δc++ {
+				aδc := math.Abs(δc)
+
+				// i+|δr|+|δc| is the distance from start to q,
+				// if cheating.
+				// dist.At(q) is the normal distance from start
+				// to q.
+				q := p.Add(grid.Pos{δr, δc})
+				if dist.At(q)-(i+aδr+aδc) >= save {
+					N++
+				}
 			}
 		}
 	}
