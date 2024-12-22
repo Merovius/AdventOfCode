@@ -60,12 +60,3 @@ func BenchmarkPart2(b *testing.B) {
 		Part2(in)
 	}
 }
-
-func BenchmarkMatch(b *testing.B) {
-	in, _ := Parse(input)
-	m := Preprocess(in)
-	Δ := MakeΔ(-2, 1, -1, 3)
-	for b.Loop() {
-		m.Match(Δ)
-	}
-}

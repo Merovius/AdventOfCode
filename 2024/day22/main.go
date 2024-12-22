@@ -10,8 +10,8 @@ import (
 
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
-	"github.com/Merovius/AdventOfCode/internal/math"
 	"github.com/Merovius/AdventOfCode/internal/pseq"
+	"github.com/Merovius/AdventOfCode/internal/set"
 )
 
 func main() {
@@ -59,40 +59,35 @@ func evolve(n int) int {
 }
 
 func Part2(nums []int) int {
-	m := Preprocess(nums)
-	return pseq.MapMerge(Δs(), m.Match, math.Max)
-}
-
-// Monkey keeps preprocessed data to speed up matching change-sequences.
-type Monkey [][1997]Packed
-
-func Preprocess(in []int) Monkey {
-	m := make(Monkey, len(in))
-	pseq.Each2(slices.All(in), func(i, n int) {
-		var δ Δ
-		for j := range 2000 {
-			k := evolve(n)
-			δ = δ.Shift(int8(k%10 - n%10))
-			if j > 3 {
-				m[i][j-3] = Pack(δ, uint8(k%10))
-			}
-			n = k
-		}
-	})
-	return m
-}
-
-func (m Monkey) Match(δ Δ) int {
-	var N int
-	for _, ps := range m {
-		for _, p := range ps {
-			if d, price := p.unpack(); d == δ {
-				N += int(price)
-				break
-			}
+	m := make(map[Δ]int)
+	for _, n := range nums {
+		for δ, v := range AggregatePrices(n) {
+			m[δ] += v
 		}
 	}
-	return N
+	var best int
+	for _, v := range m {
+		best = max(best, v)
+	}
+	return best
+}
+
+func AggregatePrices(n int) iter.Seq2[Δ, int] {
+	return func(yield func(Δ, int) bool) {
+		seen := make(set.Set[Δ])
+		var δ Δ
+		for j := range 2000 {
+			m := evolve(n)
+			δ = δ.Shift(int8(m%10 - n%10))
+			if j > 3 && !seen.Contains(δ) {
+				if !yield(δ, m%10) {
+					return
+				}
+				seen.Add(δ)
+			}
+			n = m
+		}
+	}
 }
 
 // Δ is a Packed vector of the last four changes.
@@ -103,23 +98,6 @@ func MakeΔ(a, b, c, d int8) Δ {
 		Δ(b+9)<<5 |
 		Δ(c+9)<<10 |
 		Δ(d+9)<<15
-}
-
-// Δs iterates over all possible vectors of four changes.
-func Δs() iter.Seq[Δ] {
-	return func(yield func(Δ) bool) {
-		for a := int8(-9); a <= 9; a++ {
-			for b := int8(-9); b <= 9; b++ {
-				for c := int8(-9); c <= 9; c++ {
-					for d := int8(-9); d <= 9; d++ {
-						if !yield(MakeΔ(a, b, c, d)) {
-							return
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
 // Shift v∈[-9,9] into the 0'th component.
