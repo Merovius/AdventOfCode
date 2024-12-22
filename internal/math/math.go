@@ -68,18 +68,12 @@ type TotallyOrdered interface {
 
 // Max returns the maximum of a and b.
 func Max[T TotallyOrdered](a, b T) T {
-	if a > b {
-		return a
-	}
-	return b
+	return max(a, b)
 }
 
 // Max returns the minimum of a and b.
 func Min[T TotallyOrdered](a, b T) T {
-	if a > b {
-		return b
-	}
-	return a
+	return min(a, b)
 }
 
 // Cmp returns -1, 0 and 1, if a < b, a == b and a > b, respectively.
