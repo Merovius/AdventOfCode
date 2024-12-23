@@ -50,32 +50,39 @@ func Parse(in []byte) (Graph, error) {
 }
 
 func Part1(g Graph) int {
-	cliques := make(set.Set[[3]Node])
-	for f1, t1 := range g {
-		if f1.String()[0] != 't' {
+	triangles := make(set.Set[[3]Node])
+	// a triangle is a path
+	// n1→n2→n3
+	// where n3 is a neighbor of n1 (assuming no node is connected to
+	// itself).
+	for n1, neighbors := range g {
+		if n1.String()[0] != 't' {
 			continue
 		}
-		for f2, t2 := range g {
-			for f3, t3 := range g {
-				if !t2.Contains(f1) || !t3.Contains(f1) {
+		for n2 := range neighbors {
+			for n3 := range g[n2] {
+				if !neighbors.Contains(n3) {
 					continue
 				}
-				if !t1.Contains(f2) || !t3.Contains(f2) {
-					continue
-				}
-				if !t1.Contains(f3) || !t2.Contains(f3) {
-					continue
-				}
-				s := [3]Node{f1, f2, f3}
-				slices.SortFunc(s[:], Node.Compare)
-				cliques.Add(s)
+				t := [3]Node{n1, n2, n3}
+				slices.SortFunc(t[:], Node.Compare)
+				triangles.Add(t)
 			}
 		}
 	}
-	return len(cliques)
+	return len(triangles)
 }
 
 func Part2(g Graph) string {
+	// This is not technically correct. For example:
+	// A─B─C
+	// │╱│╲│
+	// D─┼─E
+	// │╲│╱│
+	// F─G─H
+	// Every node in this graph is part of a maximal 3-clique (containing
+	// A,C,F or H). But there is also a 4-clique {B,D,E,G}, which the
+	// algorithm might not find.
 	var best set.Set[Node]
 	for n := range g {
 		if c := MaximalClique(g, n); len(c) > len(best) {
