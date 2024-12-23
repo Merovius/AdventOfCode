@@ -1,17 +1,19 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"io"
 	"log"
-	"maps"
 	"os"
 	"slices"
 	"strings"
+	"unique"
 
 	"github.com/Merovius/AdventOfCode/internal/input/parse"
 	"github.com/Merovius/AdventOfCode/internal/input/split"
 	"github.com/Merovius/AdventOfCode/internal/set"
+	"github.com/Merovius/AdventOfCode/internal/xiter"
 )
 
 func main() {
@@ -30,33 +32,31 @@ func main() {
 }
 
 func Parse(in []byte) (Graph, error) {
-	edges, err := parse.Slice(split.Lines, parse.Array[[2]string](split.On("-"), parse.String[string]))(string(in))
+	edges, err := parse.Slice(
+		split.Lines,
+		parse.Array[[2]Node](
+			split.On("-"),
+			ParseNode,
+		),
+	)(string(in))
 	if err != nil {
-		return Graph{}, err
+		return nil, err
 	}
-	g := Graph{edges: make(map[string]set.Set[string])}
+	g := make(Graph)
 	for _, e := range edges {
-		if g.edges[e[0]] == nil {
-			g.edges[e[0]] = make(set.Set[string])
-		}
-		if g.edges[e[1]] == nil {
-			g.edges[e[1]] = make(set.Set[string])
-		}
-		g.edges[e[0]].Add(e[1])
-		g.edges[e[1]].Add(e[0])
+		g.Add(e[0], e[1])
 	}
 	return g, nil
 }
 
-func Part1(in Graph) int {
-
-	sets := make(set.Set[[3]string])
-	for f1, t1 := range in.edges {
-		if f1[0] != 't' {
+func Part1(g Graph) int {
+	cliques := make(set.Set[[3]Node])
+	for f1, t1 := range g {
+		if f1.String()[0] != 't' {
 			continue
 		}
-		for f2, t2 := range in.edges {
-			for f3, t3 := range in.edges {
+		for f2, t2 := range g {
+			for f3, t3 := range g {
 				if !t2.Contains(f1) || !t3.Contains(f1) {
 					continue
 				}
@@ -66,44 +66,39 @@ func Part1(in Graph) int {
 				if !t1.Contains(f3) || !t2.Contains(f3) {
 					continue
 				}
-				s := [3]string{f1, f2, f3}
-				slices.Sort(s[:])
-				sets.Add(s)
+				s := [3]Node{f1, f2, f3}
+				slices.SortFunc(s[:], Node.Compare)
+				cliques.Add(s)
 			}
 		}
 	}
-	return len(sets)
+	return len(cliques)
 }
 
-func Part2(in Graph) string {
-	var best set.Set[string]
-	for n := range in.edges {
-		c := maximalClique(in, n)
-		if len(c) > len(best) {
+func Part2(g Graph) string {
+	var best set.Set[Node]
+	for n := range g {
+		if c := MaximalClique(g, n); len(c) > len(best) {
 			best = c
 		}
 	}
-	s := slices.Collect(maps.Keys(best))
+	s := slices.Collect(xiter.Map(best.All(), Node.String))
 	slices.Sort(s)
 	return strings.Join(s, ",")
 }
 
-func maximalClique(g Graph, n string) set.Set[string] {
-	c := make(set.Set[string])
+func MaximalClique(g Graph, n Node) set.Set[Node] {
+	c := make(set.Set[Node])
 	c.Add(n)
 	for {
 		before := len(c)
-	loop:
-		for n := range g.edges {
+		for n, edges := range g {
 			if c.Contains(n) {
 				continue
 			}
-			for m := range c {
-				if !g.edges[n].Contains(m) {
-					continue loop
-				}
+			if c.SubsetOf(edges) {
+				c.Add(n)
 			}
-			c.Add(n)
 		}
 		if len(c) == before {
 			return c
@@ -111,6 +106,29 @@ func maximalClique(g Graph, n string) set.Set[string] {
 	}
 }
 
-type Graph struct {
-	edges map[string]set.Set[string]
+type Node unique.Handle[string]
+
+func ParseNode(s string) (Node, error) {
+	return Node(unique.Make(s)), nil
+}
+
+func (n Node) Compare(m Node) int {
+	return cmp.Compare(n.String(), m.String())
+}
+
+func (n Node) String() string {
+	return (unique.Handle[string])(n).Value()
+}
+
+type Graph map[Node]set.Set[Node]
+
+func (g Graph) Add(from, to Node) {
+	if g[from] == nil {
+		g[from] = make(set.Set[Node])
+	}
+	g[from].Add(to)
+	if g[to] == nil {
+		g[to] = make(set.Set[Node])
+	}
+	g[to].Add(from)
 }

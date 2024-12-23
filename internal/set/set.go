@@ -25,6 +25,15 @@ func (s Set[E]) Contains(e E) bool {
 	return ok
 }
 
+func (s Set[E]) SubsetOf(t Set[E]) bool {
+	for e := range s {
+		if !t.Contains(e) {
+			return false
+		}
+	}
+	return true
+}
+
 func (s Set[E]) Slice() []E {
 	var out []E
 	for e := range s {
