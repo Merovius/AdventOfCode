@@ -171,7 +171,46 @@ func Part1(in System) int {
 }
 
 func Part2(in System) string {
-	// No programmatic solution (yet?).
+	// The circuit consists of a series of 1-bit full adders, looking like
+	// this:
+	//
+	// X┬──┲━━━━━┓
+	//  │  ┃ AND ┠─c1─────────┲━━━━┓
+	//  │┌─┺━━━━━┛            ┃ OR ┠─CO
+	//  └│─┲━━━━━┓           ┌┺━━━━┛
+	//   │ ┃ XOR ┠─s┬─┲━━━━━┓│c2
+	// Y─┴─┺━━━━━┛  │ ┃ AND ┠┘
+	//            ┌─│─┺━━━━━┛
+	// CI─────────┤ └─┲━━━━━┓
+	//            │   ┃ XOR ┠────────Z
+	//            └───┺━━━━━┛
+	//
+	// The last CO ("carry out") is directly connected to z45. The lowest
+	// bit only uses a half-adder, with the CO connected to the CI of the
+	// first full adder:
+	//
+	// x0─┬──┲━━━━━┓
+	//    │  ┃ AND ┠─CO
+	//    │┌─┺━━━━━┛
+	//    └│─┲━━━━━┓
+	//     │ ┃ XOR ┠─z0
+	// y0──┴─┺━━━━━┛
+	//
+	// We assume that swaps only happen within the full adders: That inputs
+	// are wired correctly to their half-adders and that the OR gate is
+	// wired correctly to the carry out. We can then work backwards:
+	// - We assume CO, X and Y are fixed and known.
+	// - Given X and Y, we find the AND gate they are connected to and thus
+	//   c1.
+	// - We can match that against the inputs of the OR gate (given CO),
+	//   to see if c1 is correctly wired up and find c2.
+	// - The output of X XOR Y is s. We can check that it is an input to an
+	//   AND gate with output c2, telling us what CI is.
+	// - CI and s allow us to find XOR and thus what Z is.
+	// - We compare Z against zN (with N the current bit) and feed CI as CO
+	//   into the next loop.
+	//
+	// So far, I was too lazy to actually implement this.
 	//
 	// Instead, I used Dump below to output the network in graphviz format.
 	// It also finds all the one-bit adders and replaces the XOR/AND gate
