@@ -68,7 +68,7 @@ func (d Direction) String() string {
 	case West:
 		return "West"
 	default:
-		return fmt.Sprintf("Direction(%#x)", d)
+		return fmt.Sprintf("Direction(%d)", d)
 	}
 }
 
@@ -129,7 +129,7 @@ func (c Cell) String() string {
 	if ok {
 		return s
 	}
-	return fmt.Sprintf("Cell(%#x)", c)
+	return fmt.Sprintf("Cell(%d)", c)
 }
 
 type Grid = grid.Grid[Cell]

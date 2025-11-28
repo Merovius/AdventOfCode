@@ -2,8 +2,10 @@ package parse
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
+	"iter"
 	"reflect"
 	"strconv"
 	"strings"
@@ -35,21 +37,24 @@ func Array[A, T any](s split.Func, p Parser[T]) Parser[A] {
 	}
 	n := at.Len()
 	return func(in string) (A, error) {
-		var a A
-		sp, err := s(in)
-		if err != nil {
-			return a, err
-		}
-		if len(sp) != n {
-			return a, fmt.Errorf("expected %d pieces, got %d", len(sp), n)
-		}
-		av := reflect.ValueOf(&a).Elem()
-		for i, s := range sp {
+		var (
+			a  A
+			av = reflect.ValueOf(&a).Elem()
+			i  int
+		)
+		for s, err := range s(in) {
+			if err != nil {
+				return a, err
+			}
+			if i > n {
+				return a, errors.New("too many pieces")
+			}
 			v, err := p(s)
 			if err != nil {
 				return a, err
 			}
 			av.Index(i).Set(reflect.ValueOf(v))
+			i++
 		}
 		return a, nil
 	}
@@ -70,11 +75,10 @@ func MapParser[A, B any](p Parser[A], f func(A) (B, error)) Parser[B] {
 func Slice[T any](s split.Func, p Parser[T]) Parser[[]T] {
 	return func(in string) ([]T, error) {
 		var out []T
-		sp, err := s(in)
-		if err != nil {
-			return nil, err
-		}
-		for _, s := range sp {
+		for s, err := range s(in) {
+			if err != nil {
+				return nil, err
+			}
 			v, err := p(s)
 			if err != nil {
 				return nil, err
@@ -100,6 +104,20 @@ func Blocks[T any](p Parser[T]) Parser[[]T] {
 	return Slice(split.Blocks, p)
 }
 
+func collectN(seq iter.Seq2[string, error], n int) ([]string, error) {
+	out := make([]string, 0, n)
+	for s, err := range seq {
+		if err != nil {
+			return nil, err
+		}
+		if len(out) == n {
+			return nil, errors.New("too many pieces")
+		}
+		out = append(out, s)
+	}
+	return out, nil
+}
+
 // Map parses a map. It uses split to separate the input into key/value pairs
 // and then uses cut to cut them up into a key and a value, which are parsed
 // using k and v respectively.
@@ -107,26 +125,26 @@ func Blocks[T any](p Parser[T]) Parser[[]T] {
 // It errors if a key is duplicated.
 func Map[K comparable, V any](split, cut split.Func, k Parser[K], v Parser[V]) Parser[map[K]V] {
 	return func(in string) (map[K]V, error) {
-		sp, err := split(in)
-		if err != nil {
-			return nil, err
-		}
 		m := make(map[K]V)
-		for _, s := range sp {
-			sp, err := cut(s)
-			if err != nil || len(sp) != 2 {
-				return nil, fmt.Errorf("invalid key/value pair %q", s)
+		for s, err := range split(in) {
+			if err != nil {
+				return nil, err
+			}
+			sp, err := collectN(cut(s), 2)
+			if err != nil {
+				return nil, fmt.Errorf("invalid key/value pair %q: %w", s, err)
 			}
 			kk, err := k(sp[0])
 			if err != nil {
 				return nil, err
 			}
+			if _, ok := m[kk]; ok {
+				return nil, fmt.Errorf("duplicate key %q", sp[0])
+
+			}
 			vv, err := v(sp[1])
 			if err != nil {
 				return nil, err
-			}
-			if _, ok := m[kk]; ok {
-				return nil, fmt.Errorf("duplicate key %q", sp[0])
 			}
 			m[kk] = vv
 		}
@@ -135,8 +153,8 @@ func Map[K comparable, V any](split, cut split.Func, k Parser[K], v Parser[V]) P
 }
 
 var (
-	stringType = reflect.TypeOf("")
-	errorType  = reflect.TypeOf(new(error)).Elem()
+	stringType = reflect.TypeFor[string]()
+	errorType  = reflect.TypeFor[error]()
 )
 
 // isParser returns T, if t is a Parser[T]. Otherwise, returns nil.
@@ -235,18 +253,22 @@ func Struct[S any](s split.Func, fields ...any) Parser[S] {
 	}
 	return func(in string) (S, error) {
 		var v S
-		sp, err := s(in)
-		if err != nil {
-			return v, err
-		}
-		if len(sp) != len(fs) {
-			return v, fmt.Errorf("Struct[%T]: got %q for %d fields", *new(S), sp, len(fs))
-		}
 		rv := reflect.ValueOf(&v).Elem()
-		for i, f := range fs {
-			if err := f.p(sp[i], rv.Field(f.idx)); err != nil {
+		i := 0
+		for s, err := range s(in) {
+			if err != nil {
 				return v, err
 			}
+			if i >= len(fs) {
+				return v, fmt.Errorf("Struct[%T]: too many pieces", v)
+			}
+			if err := fs[i].p(s, rv.Field(fs[i].idx)); err != nil {
+				return v, err
+			}
+			i++
+		}
+		if i < len(fs) {
+			return v, fmt.Errorf("Struct[%T]: got %d pieces, want %d", v, i, len(fs))
 		}
 		return v, nil
 	}
