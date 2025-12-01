@@ -165,3 +165,22 @@ func Bytes(s string) iter.Seq2[string, error] {
 		}
 	}
 }
+
+// Split into pieces of fixed byte sizes. The last piece will be the rest of the string.
+func After(ns ...int) Func {
+	return func(s string) iter.Seq2[string, error] {
+		return func(yield func(string, error) bool) {
+			for _, n := range ns {
+				if len(s) < n {
+					yield("", fmt.Errorf("%q less than %d bytes", s, n))
+					return
+				}
+				if !yield(s[:n], nil) {
+					return
+				}
+				s = s[n:]
+			}
+			yield(s, nil)
+		}
+	}
+}
