@@ -1,6 +1,0 @@
-node "AAA" does not reach end state
-L
-
-AAA = (BBB, ZZZ)
-BBB = (AAA, ZZZ)
-ZZZ = (ZZZ, ZZZ)

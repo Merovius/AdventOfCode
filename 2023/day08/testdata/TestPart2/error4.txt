@@ -1,9 +1,0 @@
-node "02A" never reaches end state with other nodes
-L
-
-01A = (01Z, XXX)
-02A = (11B, XXX)
-11B = (02Z, XXX)
-01Z = (01A, XXX)
-02Z = (XXX, XXX)
-XXX = (XXX, XXX)

@@ -1,5 +1,0 @@
-node "AAA" has undefined left neighbor "XXX"
-R
-
-AAA = (XXX, ZZZ)
-ZZZ = (ZZZ, ZZZ)

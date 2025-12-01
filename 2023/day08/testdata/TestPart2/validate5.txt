@@ -1,6 +1,0 @@
-have 2 start but 1 end nodes
-L
-
-AAA = (ZZZ, ZZZ)
-00A = (ZZZ, ZZZ)
-ZZZ = (ZZZ, ZZZ)
