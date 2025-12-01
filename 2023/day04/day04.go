@@ -9,11 +9,11 @@ import (
 	"os"
 	"slices"
 
-	"github.com/Merovius/AdventOfCode/internal/input/parse"
-	"github.com/Merovius/AdventOfCode/internal/input/split"
-	"github.com/Merovius/AdventOfCode/internal/op"
-	"github.com/Merovius/AdventOfCode/internal/set"
-	"github.com/Merovius/AdventOfCode/internal/xiter"
+	"gonih.org/AdventOfCode/internal/input/parse"
+	"gonih.org/AdventOfCode/internal/input/split"
+	"gonih.org/AdventOfCode/internal/op"
+	"gonih.org/AdventOfCode/internal/set"
+	"gonih.org/AdventOfCode/internal/xiter"
 )
 
 func main() {

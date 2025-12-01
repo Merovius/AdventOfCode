@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"gonih.org/AdventOfCode/internal/input/parse"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 )

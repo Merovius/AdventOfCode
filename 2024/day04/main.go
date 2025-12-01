@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Merovius/AdventOfCode/internal/grid"
+	"gonih.org/AdventOfCode/internal/grid"
 )
 
 func main() {

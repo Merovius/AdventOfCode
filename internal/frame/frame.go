@@ -6,7 +6,7 @@ import (
 	"io"
 	"unicode/utf8"
 
-	"github.com/Merovius/AdventOfCode/internal/math"
+	"gonih.org/AdventOfCode/internal/math"
 )
 
 type Border string

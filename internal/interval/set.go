@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/Merovius/AdventOfCode/internal/math"
+	"gonih.org/AdventOfCode/internal/math"
 	"golang.org/x/exp/constraints"
 )
 

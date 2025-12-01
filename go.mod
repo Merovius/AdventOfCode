@@ -1,4 +1,4 @@
-module github.com/Merovius/AdventOfCode
+module gonih.org/AdventOfCode
 
 go 1.24
 

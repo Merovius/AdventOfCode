@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/Merovius/AdventOfCode/internal/grid"
-	"github.com/Merovius/AdventOfCode/internal/math"
-	"github.com/Merovius/AdventOfCode/internal/set"
+	"gonih.org/AdventOfCode/internal/grid"
+	"gonih.org/AdventOfCode/internal/math"
+	"gonih.org/AdventOfCode/internal/set"
 )
 
 func main() {

@@ -8,9 +8,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/Merovius/AdventOfCode/internal/container"
-	"github.com/Merovius/AdventOfCode/internal/input/parse"
-	"github.com/Merovius/AdventOfCode/internal/input/split"
+	"gonih.org/AdventOfCode/internal/container"
+	"gonih.org/AdventOfCode/internal/input/parse"
+	"gonih.org/AdventOfCode/internal/input/split"
 )
 
 func main() {

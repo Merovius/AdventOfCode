@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Merovius/AdventOfCode/internal/grid"
+	"gonih.org/AdventOfCode/internal/grid"
 )
 
 //go:embed example.txt

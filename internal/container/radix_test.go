@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Merovius/AdventOfCode/internal/xiter"
+	"gonih.org/AdventOfCode/internal/xiter"
 )
 
 func TestRadixSet(t *testing.T) {

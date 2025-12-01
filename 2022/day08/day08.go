@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	. "github.com/Merovius/AdventOfCode/internal/math"
+	. "gonih.org/AdventOfCode/internal/math"
 )
 
 func main() {

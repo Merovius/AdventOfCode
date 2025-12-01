@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"unicode"
 
-	"github.com/Merovius/AdventOfCode/internal/grid"
-	"github.com/Merovius/AdventOfCode/internal/set"
-	"github.com/Merovius/AdventOfCode/internal/xiter"
+	"gonih.org/AdventOfCode/internal/grid"
+	"gonih.org/AdventOfCode/internal/set"
+	"gonih.org/AdventOfCode/internal/xiter"
 )
 
 func main() {

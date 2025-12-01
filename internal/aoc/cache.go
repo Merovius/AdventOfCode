@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Merovius/AdventOfCode/internal/sync"
+	"gonih.org/AdventOfCode/internal/sync"
 	"github.com/google/renameio/v2"
 )
 

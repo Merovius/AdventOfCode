@@ -13,7 +13,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Merovius/AdventOfCode/2021/go/priority_queue"
+	"gonih.org/AdventOfCode/2021/go/priority_queue"
 )
 
 func main() {

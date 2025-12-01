@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Merovius/AdventOfCode/internal/container"
-	"github.com/Merovius/AdventOfCode/internal/grid"
+	"gonih.org/AdventOfCode/internal/container"
+	"gonih.org/AdventOfCode/internal/grid"
 )
 
 func main() {

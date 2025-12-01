@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Merovius/AdventOfCode/internal/input/parse"
-	"github.com/Merovius/AdventOfCode/internal/input/split"
+	"gonih.org/AdventOfCode/internal/input/parse"
+	"gonih.org/AdventOfCode/internal/input/split"
 	"github.com/google/renameio/v2"
 )
 

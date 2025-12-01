@@ -10,7 +10,7 @@ import (
 	"os"
 	"slices"
 
-	"github.com/Merovius/AdventOfCode/internal/interval"
+	"gonih.org/AdventOfCode/internal/interval"
 )
 
 func main() {

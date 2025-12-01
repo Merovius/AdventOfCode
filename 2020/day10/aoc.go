@@ -6,7 +6,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/Merovius/AdventOfCode/2020/aoc"
+	"gonih.org/AdventOfCode/2020/aoc"
 )
 
 func main() {

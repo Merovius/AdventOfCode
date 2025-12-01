@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/Merovius/AdventOfCode/internal/input/split"
+	"gonih.org/AdventOfCode/internal/input/split"
 	"golang.org/x/exp/constraints"
 )
 

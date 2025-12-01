@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/Merovius/AdventOfCode/internal/math"
+	"gonih.org/AdventOfCode/internal/math"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 )

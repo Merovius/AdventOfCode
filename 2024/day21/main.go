@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Merovius/AdventOfCode/internal/math"
-	"github.com/Merovius/AdventOfCode/internal/xiter"
+	"gonih.org/AdventOfCode/internal/math"
+	"gonih.org/AdventOfCode/internal/xiter"
 )
 
 func main() {

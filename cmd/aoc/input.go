@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Merovius/AdventOfCode/internal/aoc"
+	"gonih.org/AdventOfCode/internal/aoc"
 	"github.com/google/renameio/v2"
 	"github.com/google/subcommands"
 )

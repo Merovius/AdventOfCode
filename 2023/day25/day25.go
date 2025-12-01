@@ -7,11 +7,11 @@ import (
 	"log"
 	"os"
 
-	"github.com/Merovius/AdventOfCode/internal/graph"
-	"github.com/Merovius/AdventOfCode/internal/input/parse"
-	"github.com/Merovius/AdventOfCode/internal/input/split"
-	"github.com/Merovius/AdventOfCode/internal/set"
-	"github.com/Merovius/AdventOfCode/internal/xiter"
+	"gonih.org/AdventOfCode/internal/graph"
+	"gonih.org/AdventOfCode/internal/input/parse"
+	"gonih.org/AdventOfCode/internal/input/split"
+	"gonih.org/AdventOfCode/internal/set"
+	"gonih.org/AdventOfCode/internal/xiter"
 )
 
 // want example:

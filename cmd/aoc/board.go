@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Merovius/AdventOfCode/internal/aoc"
-	"github.com/Merovius/AdventOfCode/internal/math"
+	"gonih.org/AdventOfCode/internal/aoc"
+	"gonih.org/AdventOfCode/internal/math"
 
 	"github.com/google/subcommands"
 	"golang.org/x/exp/slices"

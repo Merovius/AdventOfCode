@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Merovius/AdventOfCode/internal/sync"
+	"gonih.org/AdventOfCode/internal/sync"
 	"golang.org/x/exp/slices"
 	"golang.org/x/net/publicsuffix"
 )

@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Merovius/AdventOfCode/internal/aoc"
+	"gonih.org/AdventOfCode/internal/aoc"
 	"github.com/google/subcommands"
 )
 

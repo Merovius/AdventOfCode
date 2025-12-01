@@ -7,8 +7,8 @@ import (
 	"os"
 	"slices"
 
-	"github.com/Merovius/AdventOfCode/internal/grid"
-	"github.com/Merovius/AdventOfCode/internal/set"
+	"gonih.org/AdventOfCode/internal/grid"
+	"gonih.org/AdventOfCode/internal/set"
 )
 
 type Cell byte

@@ -11,10 +11,10 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/Merovius/AdventOfCode/internal/container"
-	"github.com/Merovius/AdventOfCode/internal/graph"
-	"github.com/Merovius/AdventOfCode/internal/grid"
-	"github.com/Merovius/AdventOfCode/internal/set"
+	"gonih.org/AdventOfCode/internal/container"
+	"gonih.org/AdventOfCode/internal/graph"
+	"gonih.org/AdventOfCode/internal/grid"
+	"gonih.org/AdventOfCode/internal/set"
 )
 
 func main() {

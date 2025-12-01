@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Merovius/AdventOfCode/internal/frame"
-	"github.com/Merovius/AdventOfCode/internal/grid"
-	"github.com/Merovius/AdventOfCode/internal/math"
+	"gonih.org/AdventOfCode/internal/frame"
+	"gonih.org/AdventOfCode/internal/grid"
+	"gonih.org/AdventOfCode/internal/math"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )

@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Merovius/AdventOfCode/internal/graph"
-	"github.com/Merovius/AdventOfCode/internal/grid"
+	"gonih.org/AdventOfCode/internal/graph"
+	"gonih.org/AdventOfCode/internal/grid"
 )
 
 func main() {

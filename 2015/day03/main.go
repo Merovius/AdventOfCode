@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Merovius/AdventOfCode/internal/set"
+	"gonih.org/AdventOfCode/internal/set"
 )
 
 func main() {

@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Merovius/AdventOfCode/internal/input/parse"
+	"gonih.org/AdventOfCode/internal/input/parse"
 )
 
 func main() {

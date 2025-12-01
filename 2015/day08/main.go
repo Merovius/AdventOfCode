@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Merovius/AdventOfCode/internal/input/split"
+	"gonih.org/AdventOfCode/internal/input/split"
 )
 
 func main() {
